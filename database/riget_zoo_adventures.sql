@@ -5,19 +5,20 @@ CREATE DATABASE IF NOT EXISTS riget_zoo_adventures;
 USE riget_zoo_adventures;
 
 -- Customers / users table
+-- Column names match the existing PHP code.
 CREATE TABLE IF NOT EXISTS customers (
     CustomerID INT AUTO_INCREMENT PRIMARY KEY,
+    First_Name VARCHAR(50) NOT NULL,
+    Last_Name VARCHAR(50) NOT NULL,
     Username VARCHAR(50) NOT NULL UNIQUE,
+    Pwd VARCHAR(255) NOT NULL,
     Email VARCHAR(100) NOT NULL UNIQUE,
-    Password VARCHAR(255) NOT NULL,
-    FirstName VARCHAR(50),
-    LastName VARCHAR(50),
-    Phone VARCHAR(20),
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Reward points table
-CREATE TABLE IF NOT EXISTS reward_points (
+-- Existing PHP expects a table called points.
+CREATE TABLE IF NOT EXISTS points (
     PointID INT AUTO_INCREMENT PRIMARY KEY,
     CustomerID INT NOT NULL,
     Points INT NOT NULL DEFAULT 0,
