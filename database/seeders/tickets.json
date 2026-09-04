@@ -1,0 +1,30 @@
+[
+  {
+    "type": "standard",
+    "category": "adult",
+    "price": 50.00,
+    "description": "Standard admission for adults (18+)",
+    "available_quantity": 500
+  },
+  {
+    "type": "standard",
+    "category": "child",
+    "price": 30.00,
+    "description": "Standard admission for children (3-17)",
+    "available_quantity": 500
+  },
+  {
+    "type": "premium",
+    "category": "adult",
+    "price": 100.00,
+    "description": "Premium experience with guided tours and special access",
+    "available_quantity": 200
+  },
+  {
+    "type": "premium",
+    "category": "child",
+    "price": 60.00,
+    "description": "Premium experience for children with educational activities",
+    "available_quantity": 200
+  }
+]

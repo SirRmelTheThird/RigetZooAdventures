@@ -1,0 +1,36 @@
+{
+    "name": "riget/zoo-adventures",
+    "description": "Zoo booking system with Eloquent ORM",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "illuminate/database": "^11.0",
+        "vlucas/phpdotenv": "^5.5",
+        "stripe/stripe-php": "^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Controllers\\": "src/Controllers/",
+            "Models\\": "src/Models/",
+            "Core\\": "src/Core/",
+            "Services\\": "src/Services/",
+            "Repositories\\": "src/Repositories/",
+            "DTOs\\": "src/DTOs/",
+            "Events\\": "src/Events/",
+            "Listeners\\": "src/Listeners/",
+            "Middleware\\": "src/Middleware/",
+            "Exceptions\\": "src/Exceptions/",
+            "Requests\\": "src/Requests/",
+            "Config\\": "config/",
+            "Database\\Seeders\\": "database/seeders/",
+            "Database\\Migrations\\": "database/migrations/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

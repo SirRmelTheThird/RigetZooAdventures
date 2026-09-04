@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Safari Lodge",
+    "description": "Luxury lodge with panoramic savanna views. Wake up to the sight of elephants and giraffes grazing nearby.",
+    "price_per_night": 200.00,
+    "max_guests": 4,
+    "available_rooms": 10,
+    "image_url": "/assets/images/safari-lodge.jpg"
+  },
+  {
+    "name": "Treehouse Suite",
+    "description": "Elevated treehouse accommodation with bird's eye view of the jungle. Perfect for nature lovers.",
+    "price_per_night": 150.00,
+    "max_guests": 2,
+    "available_rooms": 15,
+    "image_url": "/assets/images/treehouse.jpg"
+  },
+  {
+    "name": "Family Cabin",
+    "description": "Spacious cabin perfect for families. Includes kitchenette and living area. Close to children's play zones.",
+    "price_per_night": 180.00,
+    "max_guests": 6,
+    "available_rooms": 20,
+    "image_url": "/assets/images/family-cabin.jpg"
+  },
+  {
+    "name": "Glamping Tent",
+    "description": "Glamorous camping experience with comfortable beds and private bathrooms. Authentic outdoor experience with modern amenities.",
+    "price_per_night": 120.00,
+    "max_guests": 2,
+    "available_rooms": 25,
+    "image_url": "/assets/images/glamping-tent.jpg"
+  }
+]

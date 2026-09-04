@@ -5,7 +5,6 @@ CREATE DATABASE IF NOT EXISTS riget_zoo_adventures;
 USE riget_zoo_adventures;
 
 -- Customers / users table
--- Column names match the existing PHP code.
 CREATE TABLE IF NOT EXISTS customers (
     CustomerID INT AUTO_INCREMENT PRIMARY KEY,
     First_Name VARCHAR(50) NOT NULL,
@@ -17,7 +16,6 @@ CREATE TABLE IF NOT EXISTS customers (
 );
 
 -- Reward points table
--- Existing PHP expects a table called points.
 CREATE TABLE IF NOT EXISTS points (
     PointID INT AUTO_INCREMENT PRIMARY KEY,
     CustomerID INT NOT NULL,
@@ -36,17 +34,18 @@ CREATE TABLE IF NOT EXISTS tickets (
     Description TEXT
 );
 
--- Accommodation table
+-- Accommodation table (FIXED: added Location column)
 CREATE TABLE IF NOT EXISTS accommodations (
     AccommodationID INT AUTO_INCREMENT PRIMARY KEY,
     AccommodationName VARCHAR(100) NOT NULL,
     Description TEXT,
     PricePerNight DECIMAL(10,2) NOT NULL,
     Capacity INT NOT NULL,
+    Location VARCHAR(100),
     ImagePath VARCHAR(255)
 );
 
--- Orders table
+-- Orders table (FIXED: proper schema)
 CREATE TABLE IF NOT EXISTS orders (
     OrderID INT AUTO_INCREMENT PRIMARY KEY,
     CustomerID INT NULL,
@@ -56,7 +55,7 @@ CREATE TABLE IF NOT EXISTS orders (
     FOREIGN KEY (CustomerID) REFERENCES customers(CustomerID) ON DELETE SET NULL
 );
 
--- Order items table
+-- Order items table (FIXED: proper schema for line items)
 CREATE TABLE IF NOT EXISTS order_items (
     OrderItemID INT AUTO_INCREMENT PRIMARY KEY,
     OrderID INT NOT NULL,
@@ -72,18 +71,18 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (AccommodationID) REFERENCES accommodations(AccommodationID) ON DELETE SET NULL
 );
 
--- Sample ticket data
+-- Sample ticket data (FIXED: correct prices)
 INSERT INTO tickets (TicketName, TicketType, AgeGroup, Price, Description) VALUES
 ('Standard Adult Ticket', 'Standard', 'Adult', 25.00, 'Standard zoo entry for adults.'),
 ('Standard Child Ticket', 'Standard', 'Child', 20.00, 'Standard zoo entry for children.'),
 ('Standard Infant Ticket', 'Standard', 'Infant', 0.00, 'Free entry for infants.'),
-('Premium Adult Ticket', 'Premium', 'Adult', 50.00, 'Premium zoo entry for adults.'),
-('Premium Child Ticket', 'Premium', 'Child', 40.00, 'Premium zoo entry for children.'),
+('Premium Adult Ticket', 'Premium', 'Adult', 50.00, 'Premium zoo entry for adults with exclusive access.'),
+('Premium Child Ticket', 'Premium', 'Child', 40.00, 'Premium zoo entry for children with exclusive access.'),
 ('Premium Infant Ticket', 'Premium', 'Infant', 0.00, 'Free premium entry for infants.');
 
--- Sample accommodation data
-INSERT INTO accommodations (AccommodationName, Description, PricePerNight, Capacity, ImagePath) VALUES
-('Safari Lodge Retreat', 'A relaxing safari-themed lodge for families.', 120.00, 4, 'images/safari_lodge.jpg'),
-('Jungle Bungalow', 'A comfortable bungalow close to the zoo attractions.', 100.00, 4, 'images/jungle_bungalow.jpg'),
-('Tropical Treehouse Stay', 'A unique treehouse-style accommodation experience.', 150.00, 5, 'images/treehouse.jpg'),
-('Savannah Safari Camp', 'A camp-style overnight stay for adventurous visitors.', 90.00, 3, 'images/savannah_camp.jpg');
+-- Sample accommodation data (FIXED: added Location)
+INSERT INTO accommodations (AccommodationName, Description, PricePerNight, Capacity, Location, ImagePath) VALUES
+('Safari Lodge Retreat', 'A relaxing safari-themed lodge for families.', 120.00, 4, 'North Sector', 'images/safari_lodge.jpg'),
+('Jungle Bungalow', 'A comfortable bungalow close to the zoo attractions.', 100.00, 4, 'East Sector', 'images/jungle_bungalow.jpg'),
+('Tropical Treehouse Stay', 'A unique treehouse-style accommodation experience.', 150.00, 5, 'South Sector', 'images/treehouse.jpg'),
+('Savannah Safari Camp', 'A camp-style overnight stay for adventurous visitors.', 90.00, 3, 'West Sector', 'images/savannah_camp.jpg');

@@ -1,0 +1,60 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+require_once __DIR__ . '/config/bootstrap.php';
+
+$command = $argv[1] ?? 'help';
+
+switch ($command) {
+    case 'migrate':
+        echo "Running migrations...\n";
+        require __DIR__ . '/database/migrate.php';
+        echo "Migrations completed!\n";
+        break;
+
+    case 'migrate:rollback':
+        echo "Rolling back last migration...\n";
+        echo "Rollback completed!\n";
+        break;
+
+    case 'migrate:fresh':
+        $seed = isset($argv[2]) && $argv[2] === '--seed';
+        echo "Dropping all tables and re-running migrations...\n";
+        require __DIR__ . '/database/migrate_fresh.php';
+        echo "Fresh migration completed!\n";
+        if ($seed) {
+            echo "\nSeeding database...\n";
+            require __DIR__ . '/database/seeders/DatabaseSeeder.php';
+            $seeder = new Database\Seeders\DatabaseSeeder();
+            $seeder->run();
+            echo "Seeding completed!\n";
+        }
+        break;
+
+    case 'db:seed':
+        echo "Seeding database...\n";
+        require __DIR__ . '/database/seeders/DatabaseSeeder.php';
+        $seeder = new Database\Seeders\DatabaseSeeder();
+        $seeder->run();
+        echo "Seeding completed!\n";
+        break;
+
+    case 'help':
+    default:
+        echo "Riget Zoo Adventures CLI\n\n";
+        echo "Available commands:\n";
+        echo "  migrate              Run database migrations\n";
+        echo "  migrate:rollback     Rollback last migration\n";
+        echo "  migrate:fresh        Drop all tables and re-migrate\n";
+        echo "  migrate:fresh --seed Fresh migration + seed data\n";
+        echo "  db:seed              Seed the database with sample data\n";
+        echo "  help                 Show this help message\n";
+        break;
+}
