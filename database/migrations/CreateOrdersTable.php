@@ -12,8 +12,8 @@ class CreateOrdersTable
             $table->id();
             $table->unsignedBigInteger('customer_id')->nullable();
             $table->decimal('total_amount', 10, 2)->default(0.00);
-            $table->enum('order_status', ['Pending', 'Paid', 'Cancelled'])->default('Pending');
-            $table->string('stripe_payment_id', 255)->nullable();
+            $table->enum('order_status', ['Pending', 'Paid', 'Cancelled', 'Failed'])->default('Pending');
+            $table->string('stripe_payment_id', 255)->nullable()->unique();
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('set null');

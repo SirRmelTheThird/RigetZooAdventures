@@ -1,98 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Services;
 
+use Core\Logging\Logger;
+use DTOs\LoginCredentials;
+use DTOs\Registration;
+use Exceptions\AuthException;
+use Exceptions\ValidationException;
 use Models\Customer;
-use Core\Logger;
-use Core\Session;
+use Support\Messages;
 
-class AuthService
+final class AuthService
 {
-    public function login($username, $password): bool
+    public function __construct(private readonly Logger $logger)
     {
-        $customer = Customer::findByUsername($username);
+    }
 
-        if (!$customer) {
-            Logger::warning('Login attempt with invalid username', ['username' => $username]);
-            return false;
+    public function authenticate(LoginCredentials $credentials): Customer
+    {
+        $customer = Customer::where('username', $credentials->username)->first();
+
+        if ($customer === null || !password_verify($credentials->password, $customer->password)) {
+            $this->logger->warning('Failed login', ['username' => $credentials->username]);
+
+            throw AuthException::invalidCredentials();
         }
 
-        if (!$customer->verifyPassword($password)) {
-            Logger::warning('Login attempt with invalid password', ['username' => $username]);
-            return false;
+        $this->logger->info('Customer logged in', ['customer_id' => $customer->id]);
+
+        return $customer;
+    }
+
+    public function register(Registration $registration): Customer
+    {
+        $errors = [];
+
+        if (Customer::where('username', $registration->username)->exists()) {
+            $errors['username'] = Messages::USERNAME_TAKEN;
         }
 
-        // Regenerate session ID for security
-        Session::regenerate();
+        if (Customer::where('email', $registration->email)->exists()) {
+            $errors['email'] = Messages::EMAIL_TAKEN;
+        }
 
-        // Set session data
-        Session::set('customer_id', $customer->id);
-        Session::set('username', $customer->username);
-        Session::set('first_name', $customer->first_name);
-        Session::set('email', $customer->email);
+        if ($errors !== []) {
+            throw new ValidationException($errors);
+        }
 
-        Logger::info('User logged in', [
-            'customer_id' => $customer->id,
-            'username' => $customer->username
+        $customer = Customer::create([
+            'first_name' => $registration->firstName,
+            'last_name' => $registration->lastName,
+            'username' => $registration->username,
+            'email' => $registration->email,
+            'password' => $registration->password,
         ]);
 
-        return true;
-    }
+        $this->logger->info('Customer registered', ['customer_id' => $customer->id]);
 
-    public function register(array $data): bool
-    {
-        if (Customer::usernameExists($data['username'])) {
-            Logger::warning('Registration attempt with existing username', ['username' => $data['username']]);
-            return false;
-        }
-
-        if (Customer::emailExists($data['email'])) {
-            Logger::warning('Registration attempt with existing email', ['email' => $data['email']]);
-            return false;
-        }
-
-        try {
-            $customer = Customer::create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'username' => $data['username'],
-                'email' => $data['email'],
-                'password' => $data['password']
-            ]);
-
-            Logger::info('New user registered', [
-                'customer_id' => $customer->id,
-                'username' => $customer->username,
-                'email' => $customer->email
-            ]);
-
-            return true;
-        } catch (\Exception $e) {
-            Logger::exception($e, ['data' => $data]);
-            return false;
-        }
-    }
-
-    public function logout()
-    {
-        $username = Session::get('username');
-
-        Session::destroy();
-
-        Logger::info('User logged out', ['username' => $username]);
-    }
-
-    public function check(): bool
-    {
-        return Session::isLoggedIn();
-    }
-
-    public function user()
-    {
-        if (!$this->check()) {
-            return null;
-        }
-
-        return Customer::find(Session::getUserId());
+        return $customer;
     }
 }

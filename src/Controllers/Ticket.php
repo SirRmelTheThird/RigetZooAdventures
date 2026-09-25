@@ -1,100 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Controllers;
 
+use Core\Constants\RedirectKey;
+use Core\Request;
 use Core\Response;
 use Core\Session;
+use Core\ViewRenderer;
+use Enums\TicketType;
 use Requests\BookTicketRequest;
-use Repositories\TicketRepository;
-use DTOs\BookingDTO;
-use Core\Logger;
+use Services\CartService;
+use Services\TicketCatalog;
+use Support\Messages;
 
-class Ticket extends Controller
+final class Ticket
 {
-    private $ticketRepo;
-
-    public function __construct()
-    {
-        $this->ticketRepo = new TicketRepository();
+    public function __construct(
+        private readonly ViewRenderer $views,
+        private readonly TicketCatalog $catalog,
+        private readonly CartService $carts,
+        private readonly BookTicketRequest $bookRequest,
+    ) {
     }
 
-    public function index()
+    public function index(Request $request): Response
     {
-        $standardTickets = $this->ticketRepo->findByType('Standard');
-        $premiumTickets = $this->ticketRepo->findByType('Premium');
-
-        Response::view('tickets/index', compact('standardTickets', 'premiumTickets'));
-    }
-
-    public function showStandard()
-    {
-        $tickets = $this->ticketRepo->findByType('Standard');
-        Response::view('tickets/standard', compact('tickets'));
-    }
-
-    public function showPremium()
-    {
-        $tickets = $this->ticketRepo->findByType('Premium');
-        Response::view('tickets/premium', compact('tickets'));
-    }
-
-    public function addStandard()
-    {
-        $this->addToCart('Standard');
-    }
-
-    public function addPremium()
-    {
-        $this->addToCart('Premium');
-    }
-
-    private function addToCart($ticketType)
-    {
-        $request = new BookTicketRequest($_POST);
-
-        if (!$request->validate()) {
-            $request->failWithRedirect();
-            Response::back();
-        }
-
-        $booking = new BookingDTO(
-            $ticketType,
-            $request->getAdultCount(),
-            $request->getChildCount(),
-            $request->getDate()
-        );
-
-        $adultPrice = $this->ticketRepo->getPrice($ticketType, 'Adult');
-        $childPrice = $this->ticketRepo->getPrice($ticketType, 'Child');
-        $booking->calculateTotal($adultPrice, $childPrice);
-
-        if (!Session::has('cart')) {
-            Session::set('cart', [
-                'items' => [],
-                'total' => 0
-            ]);
-        }
-
-        $cart = Session::get('cart');
-
-        $key = "ticket_{$ticketType}_{$booking->date}";
-        $cartItem = $booking->toCartItem();
-        $cartItem['adultPrice'] = $adultPrice;
-        $cartItem['childPrice'] = $childPrice;
-
-        $cart['items'][$key] = $cartItem;
-        $cart['total'] += $booking->total;
-
-        Session::set('cart', $cart);
-
-        Logger::info('Tickets added to cart', [
-            'type' => $ticketType,
-            'adult' => $booking->adultCount,
-            'child' => $booking->childCount,
-            'total' => $booking->total
+        return $this->views->render('tickets/index', [
+            'standardTickets' => $this->catalog->forType(TicketType::Standard),
+            'premiumTickets' => $this->catalog->forType(TicketType::Premium),
         ]);
+    }
 
-        Session::flash('success', 'Tickets added to cart!');
-        Response::redirect('/cart');
+    public function showStandard(Request $request): Response
+    {
+        return $this->views->render('tickets/standard', ['tickets' => $this->catalog->forType(TicketType::Standard)]);
+    }
+
+    public function showPremium(Request $request): Response
+    {
+        return $this->views->render('tickets/premium', ['tickets' => $this->catalog->forType(TicketType::Premium)]);
+    }
+
+    public function addStandard(Request $request): Response
+    {
+        return $this->addToCart($request, TicketType::Standard);
+    }
+
+    public function addPremium(Request $request): Response
+    {
+        return $this->addToCart($request, TicketType::Premium);
+    }
+
+    private function addToCart(Request $request, TicketType $type): Response
+    {
+        $this->carts->addTickets($this->bookRequest->parse($request->body(), $type));
+
+        Session::flashSuccess(Messages::TICKETS_ADDED);
+
+        return Response::redirect(RedirectKey::CART);
     }
 }

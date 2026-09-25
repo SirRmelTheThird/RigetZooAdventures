@@ -1,17 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Middleware;
 
+use Core\Middleware;
+use Core\Request;
 use Core\Response;
 use Core\Session;
+use Exceptions\AuthException;
 
-class AuthMiddleware
+final class AuthMiddleware implements Middleware
 {
-    public function handle()
+    public function handle(Request $request): ?Response
     {
         if (!Session::isLoggedIn()) {
-            Session::flash('error', 'Please log in to continue');
-            Response::redirect('/login');
+            throw AuthException::loginRequired();
         }
+
+        return null;
     }
 }

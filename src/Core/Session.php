@@ -1,119 +1,167 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Core;
 
-class Session
-{
-    private static $started = false;
+use Core\Constants\SessionKey;
+use Exceptions\AuthException;
 
-    public static function start()
+final class Session
+{
+    private const LIFETIME_SECONDS = 1800;
+    private const COOKIE_PATH = '/';
+    private const COOKIE_SAMESITE = 'Lax';
+    private const INI_USE_ONLY_COOKIES = 'session.use_only_cookies';
+    private const INI_USE_STRICT_MODE = 'session.use_strict_mode';
+
+    public static function start(): void
     {
-        if (self::$started) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
             return;
         }
 
-        ini_set('session.use_only_cookies', 1);
-        ini_set('session.use_strict_mode', 1);
+        ini_set(self::INI_USE_ONLY_COOKIES, '1');
+        ini_set(self::INI_USE_STRICT_MODE, '1');
 
-        $cookieParams = [
-            'lifetime' => 1800,
-            'path' => '/',
-            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+        session_set_cookie_params([
+            'lifetime' => self::LIFETIME_SECONDS,
+            'path' => self::COOKIE_PATH,
+            'secure' => self::isHttps(),
             'httponly' => true,
-            'samesite' => 'Lax'
-        ];
+            'samesite' => self::COOKIE_SAMESITE,
+        ]);
 
-        if (isset($_SERVER['HTTP_HOST'])) {
-            $host = parse_url('http://' . $_SERVER['HTTP_HOST'], PHP_URL_HOST);
-            if ($host && $host !== 'localhost' && !filter_var($host, FILTER_VALIDATE_IP)) {
-                $cookieParams['domain'] = $host;
-            }
-        }
+        session_start();
 
-        session_set_cookie_params($cookieParams);
-
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        self::$started = true;
-
-        if (!isset($_SESSION['last_regeneration'])) {
-            self::regenerate();
-        } else {
-            $interval = 60 * 30;
-            if (time() - $_SESSION['last_regeneration'] >= $interval) {
-                self::regenerate();
-            }
-        }
+        self::regenerateIfDue();
     }
 
-    public static function regenerate()
+    public static function regenerate(): void
     {
         session_regenerate_id(true);
-        $_SESSION['last_regeneration'] = time();
+        $_SESSION[SessionKey::LAST_REGENERATION] = time();
     }
 
-    public static function set($key, $value)
+    public static function invalidate(): void
+    {
+        $_SESSION = [];
+        self::regenerate();
+    }
+
+    public static function signIn(int $customerId, string $username, string $firstName, string $email): void
+    {
+        self::regenerate();
+
+        $_SESSION[SessionKey::CUSTOMER_ID] = $customerId;
+        $_SESSION[SessionKey::USERNAME] = $username;
+        $_SESSION[SessionKey::FIRST_NAME] = $firstName;
+        $_SESSION[SessionKey::EMAIL] = $email;
+    }
+
+    public static function set(string $key, mixed $value): void
     {
         $_SESSION[$key] = $value;
     }
 
-    public static function get($key, $default = null)
+    public static function get(string $key, mixed $default = null): mixed
     {
-        return $_SESSION[$key] ?? $default;
+        if (!isset($_SESSION[$key])) {
+            return $default;
+        }
+
+        return $_SESSION[$key];
     }
 
-    public static function has($key)
+    public static function has(string $key): bool
     {
         return isset($_SESSION[$key]);
     }
 
-    public static function remove($key)
+    public static function remove(string $key): void
     {
         unset($_SESSION[$key]);
     }
 
-    public static function destroy()
+    public static function flash(string $key, mixed $value): void
     {
-        $_SESSION = [];
+        $_SESSION[SessionKey::FLASH][$key] = $value;
+    }
 
-        if (ini_get("session.use_cookies")) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
-            );
+    public static function flashSuccess(string $message): void
+    {
+        self::flash(SessionKey::SUCCESS, $message);
+    }
+
+    public static function flashError(string $message): void
+    {
+        self::flash(SessionKey::ERROR, $message);
+    }
+
+    public static function getFlash(string $key, mixed $default = null): mixed
+    {
+        if (!isset($_SESSION[SessionKey::FLASH][$key])) {
+            return $default;
         }
 
-        session_destroy();
-        self::$started = false;
-    }
+        $value = $_SESSION[SessionKey::FLASH][$key];
+        unset($_SESSION[SessionKey::FLASH][$key]);
 
-    public static function flash($key, $value)
-    {
-        $_SESSION['flash'][$key] = $value;
-    }
-
-    public static function getFlash($key, $default = null)
-    {
-        $value = $_SESSION['flash'][$key] ?? $default;
-        unset($_SESSION['flash'][$key]);
         return $value;
     }
 
-    public static function isLoggedIn()
+    public static function isLoggedIn(): bool
     {
-        return isset($_SESSION['customer_id']) && isset($_SESSION['username']);
+        return isset($_SESSION[SessionKey::CUSTOMER_ID], $_SESSION[SessionKey::USERNAME]);
     }
 
-    public static function getUserId()
+
+    public static function userId(): int
     {
-        return $_SESSION['customer_id'] ?? null;
+        if (!self::isLoggedIn()) {
+            throw AuthException::loginRequired();
+        }
+
+        return (int) $_SESSION[SessionKey::CUSTOMER_ID];
     }
 
-    public static function getUsername()
+    public static function getUserId(): ?int
     {
-        return $_SESSION['username'] ?? null;
+        if (!isset($_SESSION[SessionKey::CUSTOMER_ID])) {
+            return null;
+        }
+
+        return (int) $_SESSION[SessionKey::CUSTOMER_ID];
+    }
+
+    public static function getUsername(): ?string
+    {
+        if (!isset($_SESSION[SessionKey::USERNAME])) {
+            return null;
+        }
+
+        return (string) $_SESSION[SessionKey::USERNAME];
+    }
+
+    private static function isHttps(): bool
+    {
+        if (!isset($_SERVER['HTTPS'])) {
+            return false;
+        }
+
+        return $_SERVER['HTTPS'] === 'on';
+    }
+
+    private static function regenerateIfDue(): void
+    {
+        if (!isset($_SESSION[SessionKey::LAST_REGENERATION])) {
+            self::regenerate();
+
+            return;
+        }
+
+        if (time() - (int) $_SESSION[SessionKey::LAST_REGENERATION] >= self::LIFETIME_SECONDS) {
+            self::regenerate();
+        }
     }
 }

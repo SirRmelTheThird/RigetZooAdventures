@@ -1,148 +1,110 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Services;
 
+use Cart\AccommodationItem;
+use Cart\Cart;
+use Cart\TicketItem;
+use Core\Logging\Logger;
+use Enums\ItemType;
+use Enums\OrderStatus;
+use Enums\TicketCategory;
+use Illuminate\Database\Connection;
+use Illuminate\Database\Eloquent\Collection;
+use LogicException;
 use Models\Order;
 use Models\OrderItem;
-use Models\RewardPoint;
-use Events\OrderCreated;
-use Core\EventDispatcher;
-use Core\Logger;
-use Illuminate\Database\Capsule\Manager as DB;
 
-class BookingService
+final class BookingService implements OrderPlacer
 {
-    public function createOrder($customerId, $cart)
-    {
-        try {
-            return DB::transaction(function() use ($customerId, $cart) {
-                // Create the order
-                $order = Order::create([
-                    'customer_id' => $customerId,
-                    'total_amount' => $cart['total'],
-                    'order_status' => 'Pending'
-                ]);
-
-                if (!$order) {
-                    throw new \Exception('Failed to create order');
-                }
-
-                // Add items to the order
-                foreach ($cart['items'] as $item) {
-                    if ($item['type'] === 'ticket') {
-                        $this->addTicketToOrder($order->id, $item);
-                    } else {
-                        $this->addAccommodationToOrder($order->id, $item);
-                    }
-                }
-
-                // Calculate and award reward points
-                $points = RewardPoint::calculatePoints($cart['total']);
-                RewardPoint::awardPoints($customerId, $points, $order->id);
-
-                Logger::info('Order created', [
-                    'order_id' => $order->id,
-                    'customer_id' => $customerId,
-                    'total' => $cart['total'],
-                    'points_awarded' => $points
-                ]);
-
-                // Dispatch event
-                EventDispatcher::dispatch(new OrderCreated($order->id, $customerId, $cart));
-
-                return $order->id;
-            });
-
-        } catch (\Exception $e) {
-            Logger::exception($e, [
-                'customer_id' => $customerId,
-                'cart_total' => $cart['total'] ?? 0
-            ]);
-
-            throw $e;
-        }
+    public function __construct(
+        private readonly Connection $db,
+        private readonly TicketInventory $inventory,
+        private readonly AccommodationService $accommodations,
+        private readonly RewardService $rewards,
+        private readonly Logger $logger,
+    ) {
     }
 
-    private function addTicketToOrder($orderId, $item)
+    public function placePaidOrder(int $customerId, Cart $cart, string $paymentIntentId): int
     {
-        $ticketType = $item['ticketType'] ?? 'Standard';
-        $adultCount = (int)($item['adult'] ?? 0);
-        $childCount = (int)($item['child'] ?? 0);
+        $existingId = Order::where('stripe_payment_id', $paymentIntentId)->value('id');
 
-        if ($adultCount > 0) {
-            $adultTicket = \Models\Ticket::where('type', $ticketType)->where('category', 'Adult')->first();
-            $adultPrice = isset($item['adultPrice']) ? (float)$item['adultPrice'] : ($adultTicket ? (float)$adultTicket->price : 0);
-
-            OrderItem::create([
-                'order_id' => $orderId,
-                'item_type' => 'Ticket',
-                'ticket_id' => $adultTicket ? $adultTicket->id : null,
-                'quantity' => $adultCount,
-                'price' => $adultCount * $adultPrice,
-                'start_date' => $item['date'] ?? null,
-                'end_date' => null
-            ]);
-
-            if ($adultTicket) {
-                $adultTicket->decreaseQuantity($adultCount);
-            }
+        if ($existingId !== null) {
+            return (int) $existingId;
         }
 
-        if ($childCount > 0) {
-            $childTicket = \Models\Ticket::where('type', $ticketType)->where('category', 'Child')->first();
-            $childPrice = isset($item['childPrice']) ? (float)$item['childPrice'] : ($childTicket ? (float)$childTicket->price : 0);
-
-            OrderItem::create([
-                'order_id' => $orderId,
-                'item_type' => 'Ticket',
-                'ticket_id' => $childTicket ? $childTicket->id : null,
-                'quantity' => $childCount,
-                'price' => $childCount * $childPrice,
-                'start_date' => $item['date'] ?? null,
-                'end_date' => null
-            ]);
-
-            if ($childTicket) {
-                $childTicket->decreaseQuantity($childCount);
-            }
-        }
-
-        if ($adultCount === 0 && $childCount === 0) {
-            OrderItem::create([
-                'order_id' => $orderId,
-                'item_type' => 'Ticket',
-                'ticket_id' => null,
-                'quantity' => 1,
-                'price' => (float)($item['total'] ?? 0),
-                'start_date' => $item['date'] ?? null,
-                'end_date' => null
-            ]);
-        }
+        return $this->db->transaction(fn (): int => $this->createOrder($customerId, $cart, $paymentIntentId));
     }
 
-    private function addAccommodationToOrder($orderId, $item)
+    private function createOrder(int $customerId, Cart $cart, string $paymentIntentId): int
     {
+        $order = Order::create([
+            'customer_id' => $customerId,
+            'total_amount' => $cart->total(),
+            'order_status' => OrderStatus::Paid->value,
+            'stripe_payment_id' => $paymentIntentId,
+        ]);
+
+        foreach ($cart->items() as $item) {
+            if ($item instanceof TicketItem) {
+                $this->addTicketLine($order, $item, TicketCategory::Adult, $item->adult, $item->adultPrice);
+                $this->addTicketLine($order, $item, TicketCategory::Child, $item->child, $item->childPrice);
+                continue;
+            }
+
+            if ($item instanceof AccommodationItem) {
+                $this->addStay($order, $item);
+                continue;
+            }
+
+            throw new LogicException('Unsupported cart item: ' . $item::class);
+        }
+
+        $this->rewards->award($customerId, (int) $order->id, $cart->total());
+
+        $this->logger->info('Order placed', [
+            'order_id' => $order->id,
+            'customer_id' => $customerId,
+            'total' => $cart->total(),
+        ]);
+
+        return (int) $order->id;
+    }
+
+    private function addTicketLine(Order $order, TicketItem $item, TicketCategory $category, int $quantity, float $unitPrice): void
+    {
+        if ($quantity === 0) {
+            return;
+        }
+
+        $ticket = $this->inventory->reserve($item->ticketType, $category, $quantity);
+
         OrderItem::create([
-            'order_id' => $orderId,
-            'item_type' => 'Accommodation',
-            'accommodation_id' => $item['id'],
-            'quantity' => 1,
-            'price' => $item['total'],
-            'start_date' => $item['startDate'],
-            'end_date' => $item['endDate']
+            'order_id' => $order->id,
+            'item_type' => ItemType::Ticket->value,
+            'ticket_id' => $ticket->id,
+            'quantity' => $quantity,
+            'price' => round($quantity * $unitPrice, 2),
+            'start_date' => $item->date,
+            'end_date' => null,
         ]);
     }
 
-    public function getOrder($orderId)
+    private function addStay(Order $order, AccommodationItem $item): void
     {
-        return Order::with(['items', 'customer'])->find($orderId);
-    }
+        $accommodation = $this->accommodations->lockForBooking($item->accommodationId, $item->startDate, $item->endDate);
 
-    public function getCustomerOrders($customerId)
-    {
-        return Order::with(['items'])
-            ->forCustomer($customerId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        OrderItem::create([
+            'order_id' => $order->id,
+            'item_type' => ItemType::Accommodation->value,
+            'accommodation_id' => $accommodation->id,
+            'quantity' => 1,
+            'price' => $item->total(),
+            'start_date' => $item->startDate,
+            'end_date' => $item->endDate,
+        ]);
     }
 }

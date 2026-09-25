@@ -1,22 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Requests;
 
-class LoginRequest extends FormRequest
+use Core\Validation\Validator;
+use DTOs\LoginCredentials;
+
+final class LoginRequest
 {
-    protected function rules()
+    private const RULES = [
+        'username' => ['required'],
+        'password' => ['required'],
+    ];
+
+    public function __construct(private readonly Validator $validator)
     {
-        $this->validator
-            ->required('username', $this->get('username'))
-            ->required('password', $this->get('password'))
-            ->minLength('password', $this->get('password'), 6);
     }
 
-    public function credentials(): array
+    public function parse(array $input): LoginCredentials
     {
-        return [
-            'username' => $this->get('username'),
-            'password' => $this->get('password')
-        ];
+        $this->validator->validate($input, self::RULES)->throwIfFailed();
+
+        return new LoginCredentials(trim((string) $input['username']), (string) $input['password']);
     }
 }

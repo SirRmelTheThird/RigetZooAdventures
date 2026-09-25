@@ -1,30 +1,44 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Core;
 
-class CSRF
+use Core\Constants\SessionKey;
+
+final class CSRF
 {
-    public static function generate()
+    public const FIELD_NAME = 'csrf_token';
+    private const TOKEN_BYTES = 32;
+
+    public static function generate(): string
     {
-        if (!Session::has('csrf_token')) {
-            Session::set('csrf_token', bin2hex(random_bytes(32)));
+        if (!Session::has(SessionKey::CSRF_TOKEN)) {
+            Session::set(SessionKey::CSRF_TOKEN, bin2hex(random_bytes(self::TOKEN_BYTES)));
         }
 
-        return Session::get('csrf_token');
+        return (string) Session::get(SessionKey::CSRF_TOKEN);
     }
 
-    public static function validate($token)
+    public static function validate(mixed $token): bool
     {
-        if (!Session::has('csrf_token')) {
+        if (!is_string($token)) {
             return false;
         }
 
-        return hash_equals(Session::get('csrf_token'), $token);
+        if (!Session::has(SessionKey::CSRF_TOKEN)) {
+            return false;
+        }
+
+        return hash_equals((string) Session::get(SessionKey::CSRF_TOKEN), $token);
     }
 
-    public static function field()
+    public static function field(): string
     {
-        $token = self::generate();
-        return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
+        return sprintf(
+            '<input type="hidden" name="%s" value="%s">',
+            self::FIELD_NAME,
+            htmlspecialchars(self::generate(), ENT_QUOTES, 'UTF-8'),
+        );
     }
 }

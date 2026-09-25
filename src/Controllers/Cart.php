@@ -1,56 +1,54 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Controllers;
 
+use Core\Constants\RedirectKey;
+use Core\Request;
 use Core\Response;
 use Core\Session;
+use Core\ViewRenderer;
+use Requests\RemoveCartItemRequest;
+use Services\CartService;
+use Services\RewardService;
+use Support\Messages;
 
-class Cart extends Controller
+final class Cart
 {
-    public function index()
-    {
-        $cart = Session::get('cart', ['items' => [], 'total' => 0]);
-
-        $points = 0;
-        if ($cart['total'] > 0) {
-            $points = intval($cart['total'] * 10);
-        }
-
-        Response::view('cart/index', compact('cart', 'points'));
+    public function __construct(
+        private readonly ViewRenderer $views,
+        private readonly CartService $carts,
+        private readonly RewardService $rewards,
+        private readonly RemoveCartItemRequest $removeRequest,
+    ) {
     }
 
-    public function removeItem()
+    public function index(Request $request): Response
     {
-        $key = $_POST['key'] ?? null;
+        $cart = $this->carts->cart();
 
-        if (!$key) {
-            Session::flash('error', 'Invalid item');
-            Response::back();
-        }
-
-        $cart = Session::get('cart', ['items' => [], 'total' => 0]);
-
-        if (isset($cart['items'][$key])) {
-            $item = $cart['items'][$key];
-            $cart['total'] -= $item['total'];
-            unset($cart['items'][$key]);
-
-            if (empty($cart['items'])) {
-                Session::remove('cart');
-            } else {
-                Session::set('cart', $cart);
-            }
-
-            Session::flash('success', 'Item removed from cart');
-        }
-
-        Response::redirect('/cart');
+        return $this->views->render('cart/index', [
+            'cart' => $cart->toArray(),
+            'points' => $this->rewards->pointsFor($cart->total()),
+        ]);
     }
 
-    public function clear()
+    public function removeItem(Request $request): Response
     {
-        Session::remove('cart');
-        Session::flash('success', 'Cart cleared');
-        Response::redirect('/cart');
+        $this->carts->remove($this->removeRequest->parse($request->body()));
+
+        Session::flashSuccess(Messages::ITEM_REMOVED);
+
+        return Response::redirect(RedirectKey::CART);
+    }
+
+    public function clear(Request $request): Response
+    {
+        $this->carts->clear();
+
+        Session::flashSuccess(Messages::CART_CLEARED);
+
+        return Response::redirect(RedirectKey::CART);
     }
 }

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Models;
 
+use Enums\ItemType;
 use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
@@ -16,17 +19,16 @@ class OrderItem extends Model
         'quantity',
         'start_date',
         'end_date',
-        'price'
+        'price',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'start_date' => 'date',
         'end_date' => 'date',
-        'quantity' => 'integer'
+        'quantity' => 'integer',
     ];
 
-    // Relationships
     public function order()
     {
         return $this->belongsTo(Order::class, 'order_id');
@@ -42,22 +44,22 @@ class OrderItem extends Model
         return $this->belongsTo(Accommodation::class, 'accommodation_id');
     }
 
-    // Helper methods
-    public function isTicket()
+    public function isTicket(): bool
     {
-        return $this->item_type === 'Ticket';
+        return $this->item_type === ItemType::Ticket->value;
     }
 
-    public function isAccommodation()
+    public function isAccommodation(): bool
     {
-        return $this->item_type === 'Accommodation';
+        return $this->item_type === ItemType::Accommodation->value;
     }
 
-    public function getItem()
+    public function getItem(): ?Model
     {
         if ($this->isTicket()) {
             return $this->ticket;
         }
+
         return $this->accommodation;
     }
 }

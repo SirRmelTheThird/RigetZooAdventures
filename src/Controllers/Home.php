@@ -1,41 +1,54 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Controllers;
 
+use Core\Constants\RedirectKey;
+use Core\Request;
 use Core\Response;
 use Core\Session;
+use Core\ViewRenderer;
 use Models\Customer;
-use Models\Order;
+use Services\OrderQueryService;
 
-class Home extends Controller
+final class Home
 {
-    public function index()
-    {
-        Response::view('home');
+    public function __construct(
+        private readonly ViewRenderer $views,
+        private readonly OrderQueryService $orders,
+    ) {
     }
 
-    public function profile()
+    public function index(Request $request): Response
     {
-        if (!Session::isLoggedIn()) {
-            Session::flash('error', 'Please log in');
-            Response::redirect('/login');
+        return $this->views->render('home');
+    }
+
+    public function attractions(Request $request): Response
+    {
+        return $this->views->render('attractions');
+    }
+
+    public function educational(Request $request): Response
+    {
+        return $this->views->render('educational');
+    }
+
+    public function profile(Request $request): Response
+    {
+        $customerId = Session::userId();
+        $user = Customer::with('rewardPoints')->find($customerId);
+
+        if ($user === null) {
+            Session::invalidate();
+
+            return Response::redirect(RedirectKey::LOGIN);
         }
 
-        $userId = Session::getUserId();
-
-        $user = Customer::with('rewardPoints')->find($userId);
-
-        if (!$user) {
-            Session::destroy();
-            Session::flash('error', 'User account not found');
-            Response::redirect('/login');
-        }
-
-        $orders = Order::where('customer_id', $userId)
-            ->with(['items.ticket', 'items.accommodation'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        Response::view('profile', compact('user', 'orders'));
+        return $this->views->render('profile', [
+            'user' => $user,
+            'orders' => $this->orders->ordersFor($customerId),
+        ]);
     }
 }

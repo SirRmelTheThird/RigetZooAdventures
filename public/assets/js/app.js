@@ -1,105 +1,123 @@
-// Riget Zoo Adventures - JavaScript
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-hide flash messages after 5 seconds
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            alert.style.transition = 'opacity 0.5s ease';
-            alert.style.opacity = '0';
-            setTimeout(() => alert.remove(), 500);
-        }, 5000);
-    });
+(() => {
+    'use strict';
 
-    // Ticket Quantity Selectors
-    setupQuantityControl('adult', 0, 20);
-    setupQuantityControl('child', 0, 20);
+    const REVEAL_STAGGER_MS = 70;
+    const REVEAL_MAX_STEPS = 4;
+    const CURRENCY_SYMBOL = '£';
+    const MONEY_DECIMALS = 2;
 
-    // Validate ticket forms on submit
-    const ticketForms = document.querySelectorAll('form[action^="/tickets/"]');
-    ticketForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const adultInput = form.querySelector('#adult_input');
-            const childInput = form.querySelector('#child_input');
-            const adultCount = adultInput ? parseInt(adultInput.value, 10) || 0 : 0;
-            const childCount = childInput ? parseInt(childInput.value, 10) || 0 : 0;
+    const formatMoney = (amount) => CURRENCY_SYMBOL + amount.toFixed(MONEY_DECIMALS);
 
-            if (adultCount === 0 && childCount === 0) {
-                e.preventDefault();
-                alert('Please select at least one ticket.');
+    function initImageFallbacks() {
+        const hide = (img) => img.remove();
+
+        document.querySelectorAll('img[data-hide-on-error]').forEach((img) => {
+            if (img.complete && img.naturalWidth === 0) {
+                hide(img);
             }
         });
-    });
-
-    // Confirm before clearing or removing items from cart
-    const clearCartBtn = document.getElementById('clear-cart');
-    if (clearCartBtn) {
-        clearCartBtn.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to clear your cart?')) {
-                e.preventDefault();
+        document.addEventListener('error', (event) => {
+            if (event.target instanceof HTMLImageElement && event.target.hasAttribute('data-hide-on-error')) {
+                hide(event.target);
             }
-        });
+        }, true);
     }
 
-    const removeForms = document.querySelectorAll('form[action="/cart/remove"]');
-    removeForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            if (!confirm('Are you sure you want to remove this item from your cart?')) {
-                e.preventDefault();
-            }
-        });
-    });
+    function initReveal() {
+        const items = document.querySelectorAll('.rz-reveal');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    setupRevealAnimations();
-});
+        if (reduceMotion || !('IntersectionObserver' in window)) {
+            items.forEach((item) => item.classList.add('is-visible'));
+            return;
+        }
 
-function setupQuantityControl(type, min = 0, max = 20) {
-    const addBtn = document.getElementById(`add_${type}`);
-    const subBtn = document.getElementById(`sub_${type}`);
-    const valDisplay = document.getElementById(`${type}_value`);
-    const valInput = document.getElementById(`${type}_input`);
-
-    if (!addBtn || !subBtn || !valDisplay || !valInput) {
-        return;
-    }
-
-    const setValue = (value) => {
-        const next = Math.max(min, Math.min(max, value));
-        valInput.value = next;
-        valDisplay.textContent = next;
-    };
-
-    addBtn.addEventListener('click', function() {
-        setValue((parseInt(valInput.value, 10) || 0) + 1);
-    });
-
-    subBtn.addEventListener('click', function() {
-        setValue((parseInt(valInput.value, 10) || 0) - 1);
-    });
-}
-
-function setupRevealAnimations() {
-    const revealItems = document.querySelectorAll('.reveal');
-    if (!revealItems.length) {
-        return;
-    }
-
-    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        revealItems.forEach(item => item.classList.add('is-visible'));
-        return;
-    }
-
-    const observer = new IntersectionObserver((entries, activeObserver) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
+        const observer = new IntersectionObserver((entries) => {
+            const visible = entries.filter((entry) => entry.isIntersecting);
+            visible.forEach((entry, index) => {
+                const step = Math.min(index, REVEAL_MAX_STEPS);
+                entry.target.style.setProperty('--rz-delay', `${step * REVEAL_STAGGER_MS}ms`);
                 entry.target.classList.add('is-visible');
-                activeObserver.unobserve(entry.target);
-            }
-        });
-    }, {
-        threshold: 0.12,
-        rootMargin: '0px 0px -40px 0px'
-    });
+                observer.unobserve(entry.target);
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
 
-    revealItems.forEach(item => observer.observe(item));
-}
+        items.forEach((item) => observer.observe(item));
+    }
+
+    function initTicketForms() {
+        document.querySelectorAll('[data-ticket-form]').forEach((form) => {
+            const steppers = Array.from(form.querySelectorAll('[data-stepper]'));
+            const totalOutput = form.querySelector('[data-total]');
+            const submit = form.querySelector('[data-submit]');
+
+            const refresh = () => {
+                let total = 0;
+                let quantity = 0;
+                steppers.forEach((stepper) => {
+                    const value = Number(stepper.querySelector('[data-input]').value);
+                    total += value * Number(stepper.dataset.price);
+                    quantity += value;
+                    stepper.querySelector('[data-step="-1"]').disabled = value === 0;
+                });
+                totalOutput.textContent = formatMoney(total);
+                submit.disabled = quantity === 0;
+            };
+
+            steppers.forEach((stepper) => {
+                const input = stepper.querySelector('[data-input]');
+                const display = stepper.querySelector('[data-value]');
+
+                stepper.addEventListener('click', (event) => {
+                    const button = event.target.closest('[data-step]');
+                    if (!button) {
+                        return;
+                    }
+                    const next = Math.max(0, Number(input.value) + Number(button.dataset.step));
+                    input.value = String(next);
+                    display.textContent = String(next);
+                    refresh();
+                });
+            });
+
+            refresh();
+        });
+    }
+
+    function initDateRanges() {
+        const DAY_MS = 24 * 60 * 60 * 1000;
+
+        document.querySelectorAll('[data-date-range]').forEach((form) => {
+            const start = form.querySelector('[data-range-start]');
+            const end = form.querySelector('[data-range-end]');
+
+            start.addEventListener('change', () => {
+                if (!start.value) {
+                    return;
+                }
+                const minEnd = new Date(new Date(start.value).getTime() + DAY_MS).toISOString().slice(0, 10);
+                end.min = minEnd;
+                if (end.value && end.value < minEnd) {
+                    end.value = minEnd;
+                }
+            });
+        });
+    }
+
+    function initConfirmations() {
+        document.querySelectorAll('form[data-confirm]').forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                if (!window.confirm(form.dataset.confirm)) {
+                    event.preventDefault();
+                }
+            });
+        });
+    }
+
+    initImageFallbacks();
+    initReveal();
+    initTicketForms();
+    initDateRanges();
+    initConfirmations();
+})();

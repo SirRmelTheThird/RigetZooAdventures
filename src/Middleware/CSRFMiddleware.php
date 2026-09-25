@@ -1,20 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Middleware;
 
-use Core\Response;
 use Core\CSRF;
+use Core\Middleware;
+use Core\Request;
+use Core\Response;
+use Exceptions\CsrfTokenException;
 
-class CSRFMiddleware
+final class CSRFMiddleware implements Middleware
 {
-    public function handle()
+    public function handle(Request $request): ?Response
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $token = $_POST['csrf_token'] ?? '';
-
-            if (!CSRF::validate($token)) {
-                Response::json(['error' => 'CSRF token invalid'], 403);
-            }
+        if (!$request->isPost()) {
+            return null;
         }
+
+        $token = null;
+
+        if (array_key_exists(CSRF::FIELD_NAME, $request->body())) {
+            $token = $request->body()[CSRF::FIELD_NAME];
+        }
+
+        if (!CSRF::validate($token)) {
+            throw new CsrfTokenException();
+        }
+
+        return null;
     }
 }

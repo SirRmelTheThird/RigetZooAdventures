@@ -1,27 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Models;
 
+use Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
     protected $table = 'orders';
 
-    protected $fillable = [
-        'customer_id',
-        'total_amount',
-        'order_status',
-        'stripe_payment_id'
-    ];
+    protected $fillable = ['customer_id', 'total_amount', 'order_status', 'stripe_payment_id'];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
     ];
 
-    // Relationships
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'customer_id');
@@ -32,45 +29,13 @@ class Order extends Model
         return $this->hasMany(OrderItem::class, 'order_id');
     }
 
-    // Scopes
-    public function scopePaid($query)
+    public function isPaid(): bool
     {
-        return $query->where('order_status', 'Paid');
+        return $this->order_status === OrderStatus::Paid->value;
     }
 
-    public function scopePending($query)
+    public function isPending(): bool
     {
-        return $query->where('order_status', 'Pending');
-    }
-
-    public function scopeForCustomer($query, $customerId)
-    {
-        return $query->where('customer_id', $customerId);
-    }
-
-    // Helper methods
-    public function isPaid()
-    {
-        return $this->order_status === 'Paid';
-    }
-
-    public function isPending()
-    {
-        return $this->order_status === 'Pending';
-    }
-
-    public function markAsPaid($stripePaymentId = null)
-    {
-        $this->order_status = 'Paid';
-        if ($stripePaymentId) {
-            $this->stripe_payment_id = $stripePaymentId;
-        }
-        $this->save();
-    }
-
-    public function markAsCancelled()
-    {
-        $this->order_status = 'Cancelled';
-        $this->save();
+        return $this->order_status === OrderStatus::Pending->value;
     }
 }

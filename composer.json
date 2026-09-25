@@ -3,27 +3,18 @@
     "description": "Zoo booking system with Eloquent ORM",
     "type": "project",
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.2",
+        "ext-mbstring": "*",
         "illuminate/database": "^11.0",
-        "vlucas/phpdotenv": "^5.5",
-        "stripe/stripe-php": "^13.0"
+        "stripe/stripe-php": "19.0",
+        "vlucas/phpdotenv": "^5.5"
     },
     "autoload": {
         "psr-4": {
-            "Controllers\\": "src/Controllers/",
-            "Models\\": "src/Models/",
-            "Core\\": "src/Core/",
-            "Services\\": "src/Services/",
-            "Repositories\\": "src/Repositories/",
-            "DTOs\\": "src/DTOs/",
-            "Events\\": "src/Events/",
-            "Listeners\\": "src/Listeners/",
-            "Middleware\\": "src/Middleware/",
-            "Exceptions\\": "src/Exceptions/",
-            "Requests\\": "src/Requests/",
+            "": "src/",
             "Config\\": "config/",
-            "Database\\Seeders\\": "database/seeders/",
-            "Database\\Migrations\\": "database/migrations/"
+            "Database\\Migrations\\": "database/migrations/",
+            "Database\\Seeders\\": "database/seeders/"
         }
     },
     "config": {
@@ -32,5 +23,10 @@
         "sort-packages": true
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.2",
+        "squizlabs/php_codesniffer": "^4.0"
+    }
 }

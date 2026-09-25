@@ -1,86 +1,148 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Core;
 
-class Request
+use Core\Constants\RedirectKey;
+use LogicException;
+
+final class Request
 {
-    public static function method()
-    {
-        return $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    private const METHOD_POST = 'POST';
+
+    public function __construct(
+        private readonly string $method,
+        private readonly string $path,
+        private readonly array $body = [],
+        private readonly array $server = [],
+        private readonly string $rawBody = '',
+    ) {
     }
 
-    public static function isPost()
+    public static function fromGlobals(): self
     {
-        return self::method() === 'POST';
-    }
-
-    public static function isGet()
-    {
-        return self::method() === 'GET';
-    }
-
-    public static function post($key = null, $default = null)
-    {
-        if ($key === null) {
-            return $_POST;
+        if (!array_key_exists('REQUEST_METHOD', $_SERVER) || !array_key_exists('REQUEST_URI', $_SERVER)) {
+            throw new LogicException('Request::fromGlobals() needs a web SAPI; build a Request manually in CLI.');
         }
 
-        return $_POST[$key] ?? $default;
-    }
+        $uri = (string) $_SERVER['REQUEST_URI'];
+        $queryStart = strpos($uri, '?');
 
-    public static function get($key = null, $default = null)
-    {
-        if ($key === null) {
-            return $_GET;
+        if ($queryStart !== false) {
+            $uri = substr($uri, 0, $queryStart);
         }
 
-        return $_GET[$key] ?? $default;
+        return new self(
+            (string) $_SERVER['REQUEST_METHOD'],
+            $uri,
+            $_POST,
+            $_SERVER,
+            (string) file_get_contents('php://input'),
+        );
     }
 
-    public static function input($key, $default = null)
+    public function method(): string
     {
-        return $_POST[$key] ?? $_GET[$key] ?? $default;
+        return $this->method;
     }
 
-    public static function all()
+    public function path(): string
     {
-        return array_merge($_GET, $_POST);
-    }
+        $path = rtrim($this->path, '/');
 
-    public static function uri()
-    {
-        $uri = $_SERVER['REQUEST_URI'] ?? '/';
-
-        if (strpos($uri, '?') !== false) {
-            $uri = substr($uri, 0, strpos($uri, '?'));
+        if ($path === '') {
+            return '/';
         }
 
-        return $uri;
+        return $path;
     }
 
-    public static function server($key, $default = null)
+    public function isPost(): bool
     {
-        return $_SERVER[$key] ?? $default;
+        return $this->method === self::METHOD_POST;
     }
 
-    public static function isAjax()
+    public function body(): array
     {
-        return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
-            || (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+        return $this->body;
     }
 
-    public static function json($key = null, $default = null)
+    public function rawBody(): string
     {
-        static $jsonData = null;
-        if ($jsonData === null) {
-            $input = file_get_contents('php://input');
-            $jsonData = json_decode($input, true) ?? [];
+        return $this->rawBody;
+    }
+
+
+    public function header(string $name): ?string
+    {
+        $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+
+        if (!array_key_exists($key, $this->server)) {
+            return null;
         }
 
-        if ($key === null) {
-            return $jsonData;
+        return (string) $this->server[$key];
+    }
+
+    public function wantsJson(): bool
+    {
+        $requestedWith = $this->header('X-Requested-With');
+
+        if ($requestedWith !== null && strtolower($requestedWith) === 'xmlhttprequest') {
+            return true;
         }
 
-        return $jsonData[$key] ?? $default;
+        $accept = $this->header('Accept');
+
+        if ($accept === null) {
+            return false;
+        }
+
+        return str_contains($accept, 'application/json');
+    }
+
+    public function backUrl(): string
+    {
+        $referer = $this->header('Referer');
+        $host = $this->header('Host');
+
+        if ($referer === null || $host === null) {
+            return RedirectKey::HOME;
+        }
+
+        $refererParts = parse_url($referer);
+        $requestHost = parse_url('//' . $host, PHP_URL_HOST);
+
+        if ($refererParts === false || !array_key_exists('host', $refererParts)) {
+            return RedirectKey::HOME;
+        }
+
+        if ($refererParts['host'] !== $requestHost) {
+            return RedirectKey::HOME;
+        }
+
+        $target = $this->pathAndQuery($refererParts);
+
+        if (!str_starts_with($target, '/') || str_starts_with($target, '//') || str_contains($target, '\\')) {
+            return RedirectKey::HOME;
+        }
+
+        return $target;
+    }
+
+    private function pathAndQuery(array $parts): string
+    {
+        $target = RedirectKey::HOME;
+
+        if (array_key_exists('path', $parts)) {
+            $target = $parts['path'];
+        }
+
+        if (array_key_exists('query', $parts)) {
+            $target .= '?' . $parts['query'];
+        }
+
+        return $target;
     }
 }

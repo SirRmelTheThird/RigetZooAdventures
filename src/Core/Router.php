@@ -1,95 +1,93 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Core;
 
-class Router
+use Closure;
+use Exceptions\NotFoundException;
+use LogicException;
+use Support\Messages;
+
+final class Router
 {
-    private $routes = [];
-    private $middlewares = [];
+    private const CONTROLLER_NAMESPACE = 'Controllers\\';
+    private const MIDDLEWARE_NAMESPACE = 'Middleware\\';
+    private const HANDLER_PATTERN = '/^([A-Za-z0-9_]+)@([A-Za-z0-9_]+)$/';
 
-    public function get($uri, $controller, $middlewares = [])
+    private array $routes = [];
+
+    public function __construct(private readonly Closure $resolve)
     {
-        $this->addRoute('GET', $uri, $controller, $middlewares);
+    }
+
+    public function get(string $path, string $handler, array $middleware = []): self
+    {
+        return $this->add('GET', $path, $handler, $middleware);
+    }
+
+    public function post(string $path, string $handler, array $middleware = []): self
+    {
+        return $this->add('POST', $path, $handler, $middleware);
+    }
+
+    public function dispatch(Request $request): Response
+    {
+        $key = self::key($request->method(), $request->path());
+
+        if (!array_key_exists($key, $this->routes)) {
+            throw new NotFoundException(Messages::PAGE_NOT_FOUND);
+        }
+
+        $route = $this->routes[$key];
+
+        foreach ($route->middleware as $name) {
+            $response = ($this->resolve)(self::MIDDLEWARE_NAMESPACE . $name)->handle($request);
+
+            if ($response !== null) {
+                return $response;
+            }
+        }
+
+        return $this->invoke($route, $request);
+    }
+
+    private function invoke(Route $route, Request $request): Response
+    {
+        $controller = ($this->resolve)($route->controllerClass);
+
+        if (!method_exists($controller, $route->action)) {
+            throw new LogicException("{$route->controllerClass} has no action {$route->action}()");
+        }
+
+        $response = $controller->{$route->action}($request);
+
+        if (!$response instanceof Response) {
+            throw new LogicException("{$route->controllerClass}::{$route->action}() must return a Core\\Response");
+        }
+
+        return $response;
+    }
+
+    private function add(string $method, string $path, string $handler, array $middleware): self
+    {
+        if (preg_match(self::HANDLER_PATTERN, $handler, $matches) !== 1) {
+            throw new LogicException("Route handler must look like Controller@action, got '{$handler}'");
+        }
+
+        $key = self::key($method, $path);
+
+        if (array_key_exists($key, $this->routes)) {
+            throw new LogicException("Route already registered: {$key}");
+        }
+
+        $this->routes[$key] = new Route(self::CONTROLLER_NAMESPACE . $matches[1], $matches[2], $middleware);
+
         return $this;
     }
 
-    public function post($uri, $controller, $middlewares = [])
+    private static function key(string $method, string $path): string
     {
-        $this->addRoute('POST', $uri, $controller, $middlewares);
-        return $this;
-    }
-
-    private function addRoute($method, $uri, $controller, $middlewares = [])
-    {
-        $this->routes[] = [
-            'method' => $method,
-            'uri' => $uri,
-            'controller' => $controller,
-            'middlewares' => $middlewares
-        ];
-    }
-
-    public function dispatch()
-    {
-        $requestMethod = Request::method();
-        $requestUri = Request::uri();
-
-        foreach ($this->routes as $route) {
-            if ($route['method'] === $requestMethod && $this->matchUri($route['uri'], $requestUri)) {
-                foreach ($route['middlewares'] as $middleware) {
-                    $middlewareClass = "Middleware\\{$middleware}";
-                    if (class_exists($middlewareClass)) {
-                        $middlewareInstance = new $middlewareClass();
-                        $middlewareInstance->handle();
-                    }
-                }
-
-                $this->executeController($route['controller']);
-                return;
-            }
-        }
-
-        Response::notFound();
-    }
-
-    private function matchUri($pattern, $uri)
-    {
-        if ($pattern === $uri) {
-            return true;
-        }
-
-        $pattern = preg_replace('/\{[a-zA-Z0-9_]+\}/', '([a-zA-Z0-9_-]+)', $pattern);
-        $pattern = '#^' . $pattern . '$#';
-
-        return preg_match($pattern, $uri);
-    }
-
-    private function executeController($controller)
-    {
-        if (is_callable($controller)) {
-            call_user_func($controller);
-            return;
-        }
-
-        if (is_string($controller) && strpos($controller, '@') !== false) {
-            list($class, $method) = explode('@', $controller);
-
-            $controllerClass = "Controllers\\{$class}";
-
-            if (!class_exists($controllerClass)) {
-                throw new \Exceptions\NotFoundException("Controller not found: {$class}");
-            }
-
-            $controllerInstance = new $controllerClass();
-
-            if (!method_exists($controllerInstance, $method)) {
-                throw new \Exceptions\NotFoundException("Method not found: {$method}");
-            }
-
-            $controllerInstance->$method();
-            return;
-        }
-
-        throw new \Exceptions\NotFoundException("Invalid controller handler");
+        return $method . ' ' . $path;
     }
 }

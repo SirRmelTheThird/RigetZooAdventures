@@ -1,39 +1,38 @@
-<?php require __DIR__ . '/layouts/header.php'; ?>
+<?php
 
-<div class="page-content">
-    <header class="page-header reveal">
-        <p class="page-kicker">Learning visits</p>
-        <h1>Educational Visits</h1>
-        <p class="page-subtitle">Plan guided learning around conservation, biodiversity, animal behavior, and group discovery.</p>
-    </header>
+declare(strict_types=1);
 
-    <div class="education-grid">
-        <section class="content-card reveal">
-            <h2>Built for discovery</h2>
-            <p>Our zoo offers guided tours, workshops, and hands-on sessions that help students and youth groups understand wildlife and conservation.</p>
-            <div class="stat-row">
-                <span class="stat-pill">Guided tours</span>
-                <span class="stat-pill">Youth groups</span>
-                <span class="stat-pill">Conservation</span>
-            </div>
-            <a href="/tickets" class="btn-primary-rza" style="margin-top: 16px;">Book Tickets</a>
+use Core\View\Format;
+use Core\View\View;
+
+$pageTitle = 'Educational visits';
+require __DIR__ . '/layouts/header.php';
+
+$content = View::content('educational');
+$feature = $content['feature'];
+?>
+
+<div class="rz-container rz-page">
+    <?php View::partial('page-header', ['header' => $content['header']]); ?>
+
+    <div class="rz-learn">
+        <section class="rz-learn__feature rz-reveal">
+            <h2><?= Format::e($feature['title']) ?></h2>
+            <p><?= Format::e($feature['text']) ?></p>
+            <?php View::partial('pills', ['items' => $feature['pills']]); ?>
+            <a class="rz-btn rz-btn--primary" href="<?= Format::e($feature['cta']['href']) ?>"><?= Format::e($feature['cta']['label']) ?></a>
         </section>
 
-        <div class="education-stack">
-            <article class="content-card reveal">
-                <h3>Special Programs</h3>
-                <p>Scouts, Guides, and Youth Groups can join structured sessions shaped around conservation, biodiversity, and animal behavior.</p>
-            </article>
-
-            <article class="content-card reveal">
-                <h3>Customized Experiences</h3>
-                <p>We can tailor a visit around your group’s badge work, lesson topic, or preferred animal habitats.</p>
-            </article>
-
-            <article class="content-card reveal">
-                <h3>Booking Information</h3>
-                <p>For group bookings and educational programs, contact the zoo in advance so the team can prepare the right route and activities.</p>
-            </article>
+        <div class="rz-learn__topics">
+            <?php foreach ($content['topics'] as $topic): ?>
+                <article class="rz-topic rz-reveal">
+                    <span class="rz-topic__icon material-symbols-outlined" aria-hidden="true"><?= Format::e($topic['icon']) ?></span>
+                    <div>
+                        <h3><?= Format::e($topic['title']) ?></h3>
+                        <p class="rz-muted"><?= Format::e($topic['text']) ?></p>
+                    </div>
+                </article>
+            <?php endforeach; ?>
         </div>
     </div>
 </div>

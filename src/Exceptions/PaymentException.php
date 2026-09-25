@@ -1,17 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Exceptions;
 
-class PaymentException extends \Exception
-{
-    protected $message = 'Payment processing failed';
-    protected $code = 402;
+use Core\HttpStatus;
 
-    public function __construct($message = null, $code = 402)
+final class PaymentException extends UserFacingException
+{
+    public function __construct(string $message, ?string $redirectTo = null)
     {
-        if ($message) {
-            $this->message = $message;
-        }
-        parent::__construct($this->message, $code);
+        parent::__construct($message, HttpStatus::PaymentRequired, $redirectTo);
     }
 }

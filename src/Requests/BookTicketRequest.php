@@ -1,36 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Requests;
 
-class BookTicketRequest extends FormRequest
+use Core\Validation\Validator;
+use DTOs\TicketSelection;
+use Enums\TicketType;
+use Support\Messages;
+
+final class BookTicketRequest
 {
-    protected function rules()
+    private const MAX_TICKETS_PER_CATEGORY = 50;
+
+    private const RULES = [
+        'date' => ['required', 'date', 'futureDate'],
+        'adult' => ['integer', 'min:0', 'max:' . self::MAX_TICKETS_PER_CATEGORY],
+        'child' => ['integer', 'min:0', 'max:' . self::MAX_TICKETS_PER_CATEGORY],
+    ];
+
+    public function __construct(private readonly Validator $validator)
     {
-        $adult = intval($this->get('adult', 0));
-        $child = intval($this->get('child', 0));
+    }
 
-        $this->validator
-            ->required('date', $this->get('date'))
-            ->date('date', $this->get('date'))
-            ->futureDate('date', $this->get('date'));
+    public function parse(array $input, TicketType $type): TicketSelection
+    {
+        $result = $this->validator->validate($input, self::RULES);
 
-        if ($adult <= 0 && $child <= 0) {
-            $this->validator->required('tickets', '', 'Please select at least one ticket');
+        if ($result->passes() && $this->quantity($input, 'adult') + $this->quantity($input, 'child') === 0) {
+            $result = $result->withError('tickets', Messages::SELECT_AT_LEAST_ONE_TICKET);
         }
+
+        $result->throwIfFailed();
+
+        return new TicketSelection(
+            $type,
+            $this->quantity($input, 'adult'),
+            $this->quantity($input, 'child'),
+            (string) $input['date'],
+        );
     }
 
-    public function getAdultCount(): int
+    private function quantity(array $input, string $key): int
     {
-        return intval($this->get('adult', 0));
-    }
+        if (!array_key_exists($key, $input) || $input[$key] === '') {
+            return 0;
+        }
 
-    public function getChildCount(): int
-    {
-        return intval($this->get('child', 0));
-    }
-
-    public function getDate(): string
-    {
-        return $this->get('date');
+        return (int) $input[$key];
     }
 }

@@ -1,36 +1,24 @@
-<?php require __DIR__ . '/../layouts/header.php'; ?>
+<?php
 
-<div class="page-content">
-    <header class="page-header reveal">
-        <p class="page-kicker">Admission</p>
-        <h1>Select Your Tickets</h1>
-        <p class="page-subtitle">Choose a simple day pass or unlock the full safari route with premium access.</p>
-    </header>
+declare(strict_types=1);
 
-    <div class="ticket-choice-grid">
-        <article class="ticket-choice content-card reveal">
-            <div>
-                <h2>Standard Ticket</h2>
-                <p>Full-day entry to the zoo, animal habitats, visitor paths, restaurants, and family facilities.</p>
-            </div>
-            <div class="ticket-meta">
-                <span class="stat-pill">Adult $25</span>
-                <span class="stat-pill">Child $20</span>
-            </div>
-            <a class="btn-secondary-rza" href="/tickets/standard">View Standard</a>
-        </article>
+use Core\View\TicketPricing;
+use Core\View\View;
 
-        <article class="ticket-choice content-card featured reveal">
-            <div>
-                <h2>Premium Ticket</h2>
-                <p>Includes premium safari experiences, guided access, and the widest route through the park.</p>
-            </div>
-            <div class="ticket-meta">
-                <span class="stat-pill">Adult $50</span>
-                <span class="stat-pill">Child $40</span>
-            </div>
-            <a class="btn-primary-rza" href="/tickets/premium">View Premium</a>
-        </article>
+$pageTitle = 'Tickets';
+require __DIR__ . '/../layouts/header.php';
+
+$content = View::content('tickets');
+$standardPricing = TicketPricing::fromTickets($standardTickets);
+$premiumPricing = TicketPricing::fromTickets($premiumTickets);
+?>
+
+<div class="rz-container rz-page">
+    <?php View::partial('page-header', ['header' => $content['index']]); ?>
+
+    <div class="rz-tiers">
+        <?php View::partial('ticket-tier', ['tier' => $content['tiers']['standard'], 'pricing' => $standardPricing, 'ages' => $content['ages']]); ?>
+        <?php View::partial('ticket-tier', ['tier' => $content['tiers']['premium'], 'pricing' => $premiumPricing, 'ages' => $content['ages']]); ?>
     </div>
 </div>
 

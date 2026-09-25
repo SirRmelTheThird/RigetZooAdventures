@@ -1,64 +1,54 @@
-<?php require __DIR__ . '/layouts/header.php'; ?>
+<?php
 
-<section class="home-hero">
-    <div class="hero-copy reveal">
-        <p class="page-kicker">Plan your visit</p>
-        <h1>Wild days, restful nights.</h1>
-        <p>Book zoo tickets, safari experiences, and park stays with one clear path from planning to checkout.</p>
-        <div class="hero-actions">
-            <a class="btn-primary-rza" href="/tickets">Book Tickets</a>
-            <a class="btn-secondary-rza" href="/accommodations">View Stays</a>
+declare(strict_types=1);
+
+use Core\View\Format;
+use Core\View\View;
+
+$pageTitle = 'Home';
+require __DIR__ . '/layouts/header.php';
+
+$home = View::content('home');
+$hero = $home['hero'];
+$visit = $home['visit'];
+[$featuredTile, $stayTile, $attractionTile] = $visit['tiles'];
+?>
+
+<section class="rz-container rz-hero">
+    <div class="rz-hero__copy rz-reveal">
+        <p class="rz-kicker"><?= Format::e($hero['kicker']) ?></p>
+        <h1><?= Format::e($hero['title']) ?></h1>
+        <p class="rz-lede"><?= Format::e($hero['lede']) ?></p>
+        <div class="rz-actions">
+            <a class="rz-btn rz-btn--primary" href="<?= Format::e($hero['primary']['href']) ?>"><?= Format::e($hero['primary']['label']) ?></a>
+            <a class="rz-btn rz-btn--secondary" href="<?= Format::e($hero['secondary']['href']) ?>"><?= Format::e($hero['secondary']['label']) ?></a>
         </div>
     </div>
 
-    <div class="media-frame hero-media reveal">
-        <img src="/assets/images/deer.jpg" alt="Deer at Riget Zoo Adventures" onerror="this.closest('.media-frame').classList.add('is-missing'); this.remove();">
-        <div class="media-fallback">Riget Zoo Adventures</div>
+    <div class="rz-hero__media rz-reveal">
+        <?php View::partial('media', $hero['media'] + ['ratio' => 'fill', 'priority' => true]); ?>
     </div>
 </section>
 
-<section class="site-section">
-    <div class="page-header reveal">
-        <h2 class="page-title">A full visit in one place.</h2>
-        <p class="page-subtitle">Choose admission, add a stay inside the park, and keep your day focused on the animals instead of the admin.</p>
-    </div>
-
-    <div class="grid">
-        <article class="destination-card content-card reveal">
-            <a class="media-frame" href="/accommodations" aria-label="View accommodations">
-                <img src="/assets/images/hotel.jpg" alt="Safari accommodation at Riget Zoo Adventures" onerror="this.closest('.media-frame').classList.add('is-missing'); this.remove();">
-                <span class="media-fallback">Stay inside the park</span>
-            </a>
-            <div class="destination-card-body">
-                <h3>Accommodations</h3>
-                <p>Wake near the wildlife with lodges, hotels, and glamping stays built around the park experience.</p>
-                <a class="btn-secondary-rza" href="/accommodations">Explore Stays</a>
+<section class="rz-container rz-facts rz-reveal" aria-label="At a glance">
+    <?php foreach ($home['facts'] as $fact): ?>
+        <div class="rz-fact">
+            <span class="material-symbols-outlined" aria-hidden="true"><?= Format::e($fact['icon']) ?></span>
+            <div>
+                <strong><?= Format::e($fact['title']) ?></strong>
+                <span><?= Format::e($fact['text']) ?></span>
             </div>
-        </article>
+        </div>
+    <?php endforeach; ?>
+</section>
 
-        <article class="destination-card content-card reveal">
-            <a class="media-frame" href="/attractions" aria-label="View attractions">
-                <img src="/assets/images/train.jpg" alt="Zoo train and attraction route" onerror="this.closest('.media-frame').classList.add('is-missing'); this.remove();">
-                <span class="media-fallback">Park attractions</span>
-            </a>
-            <div class="destination-card-body">
-                <h3>Attractions</h3>
-                <p>Move through habitats, animal encounters, guided experiences, restaurants, and family facilities.</p>
-                <a class="btn-secondary-rza" href="/attractions">See Attractions</a>
-            </div>
-        </article>
+<section class="rz-container rz-section">
+    <?php View::partial('section-head', ['title' => $visit['title'], 'lede' => $visit['lede']]); ?>
 
-        <article class="destination-card content-card reveal">
-            <a class="media-frame" href="/tickets" aria-label="View tickets">
-                <img src="/assets/images/ticket.jpg" alt="Riget Zoo Adventures admission tickets" onerror="this.closest('.media-frame').classList.add('is-missing'); this.remove();">
-                <span class="media-fallback">Admission passes</span>
-            </a>
-            <div class="destination-card-body">
-                <h3>Tickets</h3>
-                <p>Pick Standard for a full day of discovery or Premium for added safari access and guided experiences.</p>
-                <a class="btn-primary-rza" href="/tickets">Choose Tickets</a>
-            </div>
-        </article>
+    <div class="rz-bento">
+        <?php View::partial('link-tile', ['tile' => $featuredTile, 'ratio' => '16x10']); ?>
+        <?php View::partial('link-tile', ['tile' => $stayTile, 'ratio' => 'fill']); ?>
+        <?php View::partial('link-tile', ['tile' => $attractionTile, 'ratio' => 'fill']); ?>
     </div>
 </section>
 

@@ -1,17 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Exceptions;
 
-class NotFoundException extends \Exception
-{
-    protected $message = 'Resource not found';
-    protected $code = 404;
+use Core\HttpStatus;
 
-    public function __construct($message = null, $code = 404)
+final class NotFoundException extends UserFacingException
+{
+    public function __construct(string $message)
     {
-        if ($message) {
-            $this->message = $message;
-        }
-        parent::__construct($this->message, $code);
+        parent::__construct($message, HttpStatus::NotFound);
     }
 }

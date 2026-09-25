@@ -1,78 +1,63 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Controllers;
 
+use Core\Constants\RedirectKey;
+use Core\Request;
 use Core\Response;
 use Core\Session;
-use Services\AuthService;
+use Core\ViewRenderer;
 use Requests\LoginRequest;
 use Requests\SignupRequest;
-use DTOs\CreateUserDTO;
-use Core\Logger;
+use Services\AuthService;
+use Support\Messages;
 
-class Auth extends Controller
+final class Auth
 {
-    private $authService;
-
-    public function __construct()
-    {
-        $this->authService = new AuthService();
+    public function __construct(
+        private readonly ViewRenderer $views,
+        private readonly AuthService $auth,
+        private readonly LoginRequest $loginRequest,
+        private readonly SignupRequest $signupRequest,
+    ) {
     }
 
-    public function showLogin()
+    public function showLogin(Request $request): Response
     {
-        Response::view('auth/login');
+        return $this->views->render('auth/login');
     }
 
-    public function login()
+    public function login(Request $request): Response
     {
-        $request = new LoginRequest($_POST);
+        $customer = $this->auth->authenticate($this->loginRequest->parse($request->body()));
 
-        if (!$request->validate()) {
-            $request->failWithRedirect();
-            Response::redirect('/login');
-        }
+        Session::signIn((int) $customer->id, (string) $customer->username, (string) $customer->first_name, (string) $customer->email);
+        Session::flashSuccess(Messages::LOGGED_IN);
 
-        $credentials = $request->credentials();
-
-        if ($this->authService->login($credentials['username'], $credentials['password'])) {
-            Session::flash('success', 'Logged in successfully!');
-            Response::redirect('/');
-        }
-
-        Session::flash('error', 'Invalid username or password');
-        Response::redirect('/login');
+        return Response::redirect(RedirectKey::HOME);
     }
 
-    public function showSignup()
+    public function showSignup(Request $request): Response
     {
-        Response::view('auth/signup');
+        return $this->views->render('auth/signup');
     }
 
-    public function signup()
+    public function signup(Request $request): Response
     {
-        $request = new SignupRequest($_POST);
+        $this->auth->register($this->signupRequest->parse($request->body()));
 
-        if (!$request->validate()) {
-            $request->failWithRedirect();
-            Response::redirect('/signup');
-        }
+        Session::flashSuccess(Messages::ACCOUNT_CREATED);
 
-        $dto = new CreateUserDTO($request->validated());
-
-        if ($this->authService->register($dto->toArray())) {
-            Session::flash('success', 'Account created! Please log in.');
-            Response::redirect('/login');
-        }
-
-        Session::flash('error', 'Failed to create account. Please try again.');
-        Response::redirect('/signup');
+        return Response::redirect(RedirectKey::LOGIN);
     }
 
-    public function logout()
+    public function logout(Request $request): Response
     {
-        $this->authService->logout();
-        Session::flash('success', 'You have been logged out');
-        Response::redirect('/');
+        Session::invalidate();
+        Session::flashSuccess(Messages::LOGGED_OUT);
+
+        return Response::redirect(RedirectKey::HOME);
     }
 }

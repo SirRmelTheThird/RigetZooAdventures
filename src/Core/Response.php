@@ -1,51 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Core;
 
-class Response
+final class Response
 {
-    public static function redirect($url)
-    {
-        header("Location: {$url}");
-        exit;
+    private const CONTENT_TYPE_HTML = 'text/html; charset=UTF-8';
+    private const CONTENT_TYPE_JSON = 'application/json';
+
+    private function __construct(
+        private readonly HttpStatus $status,
+        private readonly array $headers,
+        private readonly string $body,
+    ) {
     }
 
-    public static function back()
+    public static function html(string $body, HttpStatus $status = HttpStatus::Ok): self
     {
-        $referer = $_SERVER['HTTP_REFERER'] ?? '/';
-        self::redirect($referer);
+        return new self($status, ['Content-Type' => self::CONTENT_TYPE_HTML], $body);
     }
 
-    public static function json($data, $statusCode = 200)
+    public static function json(array $data, HttpStatus $status = HttpStatus::Ok): self
     {
-        http_response_code($statusCode);
-        header('Content-Type: application/json');
-        echo json_encode($data);
-        exit;
+        return new self($status, ['Content-Type' => self::CONTENT_TYPE_JSON], json_encode($data, JSON_THROW_ON_ERROR));
     }
 
-    public static function view($view, $data = [])
+    public static function redirect(string $location): self
     {
-        extract($data);
+        return new self(HttpStatus::Found, ['Location' => $location], '');
+    }
 
-        $viewPath = dirname(__DIR__) . '/Views/' . $view . '.php';
+    public static function empty(HttpStatus $status): self
+    {
+        return new self($status, [], '');
+    }
 
-        if (!file_exists($viewPath)) {
-            throw new \Exceptions\NotFoundException("View not found: {$view}");
+    public function status(): HttpStatus
+    {
+        return $this->status;
+    }
+
+    public function headers(): array
+    {
+        return $this->headers;
+    }
+
+    public function body(): string
+    {
+        return $this->body;
+    }
+
+    public function send(): void
+    {
+        http_response_code($this->status->value);
+
+        foreach ($this->headers as $name => $value) {
+            header("{$name}: {$value}");
         }
 
-        require $viewPath;
-    }
-
-    public static function setStatusCode($code)
-    {
-        http_response_code($code);
-    }
-
-    public static function notFound($message = 'Page not found')
-    {
-        self::setStatusCode(404);
-        self::view('errors/404', ['message' => $message]);
-        exit;
+        echo $this->body;
     }
 }

@@ -1,19 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Exceptions;
 
-class ValidationException extends \Exception
-{
-    protected $errors = [];
-    protected $code = 422;
+use Core\HttpStatus;
 
-    public function __construct(array $errors = [], $message = 'Validation failed')
+final class ValidationException extends UserFacingException
+{
+    private const MESSAGE = 'Validation failed';
+
+    public function __construct(private readonly array $errors)
     {
-        $this->errors = $errors;
-        parent::__construct($message, $this->code);
+        parent::__construct(self::MESSAGE, HttpStatus::Unprocessable);
     }
 
-    public function getErrors()
+    public function errors(): array
     {
         return $this->errors;
     }
