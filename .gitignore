@@ -21,18 +21,11 @@ Thumbs.db
 # Plans
 plans/
 
-# Husky
-.husky/
-
 # Coding standards
 CODING_STANDARD.md
 
 # Logs
 *.log
-
-# Storage & Cache
-storage/logs/*
-!storage/logs/.gitkeep
 
 # Temporary files
 tmp/
