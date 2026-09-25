@@ -16,7 +16,7 @@ return [
             'text' => 'Move between animal exhibits, immersive habitats, keeper encounters, children’s play areas, shows, and guided transport routes through the sanctuary.',
             'pills' => ['Animal habitats', 'Zoo train', 'Family facilities'],
             'media' => [
-                'src' => '/assets/images/WEBP/wildlife-routes.webp',
+                'src' => '/assets/images/webp/wildlife-routes.webp',
                 'alt' => 'Zoo train route at Riget Zoo Adventures',
                 'icon' => 'train',
             ],
@@ -26,7 +26,7 @@ return [
             'text' => 'Pick up safari clothing, plush animals, handmade keepsakes, and wildlife-inspired gifts after your day in the park.',
             'pills' => [],
             'media' => [
-                'src' => '/assets/images/WEBP/gift-shop.webp',
+                'src' => '/assets/images/webp/gift-shop.webp',
                 'alt' => 'Gift shop at Riget Zoo Adventures',
                 'icon' => 'storefront',
             ],
@@ -36,7 +36,7 @@ return [
             'text' => 'Take a proper break with casual meals, scenic views, and food options placed close to the main visitor routes.',
             'pills' => [],
             'media' => [
-                'src' => '/assets/images/WEBP/restaurant.webp',
+                'src' => '/assets/images/webp/restaurant.webp',
                 'alt' => 'Restaurant seating at Riget Zoo Adventures',
                 'icon' => 'restaurant',
             ],

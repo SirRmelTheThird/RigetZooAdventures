@@ -12,7 +12,7 @@ return [
         'primary' => ['label' => 'Book tickets', 'href' => RedirectKey::TICKETS],
         'secondary' => ['label' => 'View stays', 'href' => RedirectKey::ACCOMMODATIONS],
         'media' => [
-            'src' => '/assets/images/WEBP/home.webp',
+            'src' => '/assets/images/webp/home.webp',
             'alt' => 'Deer at Riget Zoo Adventures',
             'icon' => 'forest',
         ],
@@ -32,7 +32,7 @@ return [
                 'text' => 'Pick Standard Tickets for a full day of discovery or Premium Tickets for added safari access and guided experiences.',
                 'href' => RedirectKey::TICKETS,
                 'media' => [
-                    'src' => '/assets/images/WEBP/home-ticket.webp',
+                    'src' => '/assets/images/webp/home-ticket.webp',
                     'alt' => 'Riget Zoo Adventures admission tickets',
                     'icon' => 'confirmation_number',
                 ],
@@ -43,7 +43,7 @@ return [
                 'text' => 'Wake near the wildlife with lodges, hotels, and glamping stays built around the park experience.',
                 'href' => RedirectKey::ACCOMMODATIONS,
                 'media' => [
-                    'src' => '/assets/images/WEBP/home-accommodation.webp',
+                    'src' => '/assets/images/webp/home-accommodation.webp',
                     'alt' => 'Safari accommodation at Riget Zoo Adventures',
                     'icon' => 'cabin',
                 ],
@@ -54,7 +54,7 @@ return [
                 'text' => 'Move through habitats, animal encounters, guided experiences, restaurants, and family facilities.',
                 'href' => RedirectKey::ATTRACTIONS,
                 'media' => [
-                    'src' => '/assets/images/WEBP/home-attraction.webp',
+                    'src' => '/assets/images/webp/home-attraction.webp',
                     'alt' => 'Zoo train and attraction route',
                     'icon' => 'train',
                 ],

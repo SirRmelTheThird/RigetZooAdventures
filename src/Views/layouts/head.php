@@ -21,7 +21,7 @@ if (isset($pageTitle)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?= Format::e($site['description']) ?>">
     <meta name="theme-color" content="#12240f">
-    <link rel="icon" type="image/png" sizes="64x64" href="/assets/images/LOGO/rza-logo.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/images/logo/rza-logo.png">
     <title><?= Format::e($documentTitle) ?></title>
     <script>document.documentElement.classList.add('js');</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">

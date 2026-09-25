@@ -1,4 +1,3 @@
-
 {
     "name": "riget/zoo-adventures",
     "description": "Zoo booking system with Eloquent ORM",
@@ -34,6 +33,7 @@
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.95",
         "phpstan/phpstan": "^2.2",
+        "phpunit/phpunit": "^13.3",
         "squizlabs/php_codesniffer": "^4.0"
     }
 }

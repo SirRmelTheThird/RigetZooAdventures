@@ -7,7 +7,7 @@ namespace Core\View;
 final class Image
 {
     private const IMAGE_PATH = '/assets/images/';
-    private const WEBP_PATH = '/assets/images/WEBP/';
+    private const WEBP_PATH = '/assets/images/webp/';
 
     public static function webp(string $src): string
     {

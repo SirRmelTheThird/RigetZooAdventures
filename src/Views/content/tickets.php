@@ -39,7 +39,7 @@ return [
                 'extra_pill' => 'Infants free',
                 'callout' => null,
                 'media' => [
-                    'src' => '/assets/images/WEBP/ticket-3.webp',
+                    'src' => '/assets/images/webp/ticket-3.webp',
                     'alt' => 'Standard Ticket at Riget Zoo Adventures',
                     'icon' => 'confirmation_number',
                 ],
@@ -67,7 +67,7 @@ return [
                     'text' => 'Drive-through safari, walking safari, boat safari, experienced guides, and education programs.',
                 ],
                 'media' => [
-                    'src' => '/assets/images/WEBP/ticket-4.webp',
+                    'src' => '/assets/images/webp/ticket-4.webp',
                     'alt' => 'Premium Ticket at Riget Zoo Adventures',
                     'icon' => 'confirmation_number',
                 ],

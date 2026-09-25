@@ -5,7 +5,7 @@
     "price_per_night": 200.00,
     "max_guests": 4,
     "available_rooms": 10,
-    "image_url": "/assets/images/WEBP/safari-lodge.webp"
+    "image_url": "/assets/images/webp/safari-lodge.webp"
   },
   {
     "name": "Treehouse Suite",
@@ -13,7 +13,7 @@
     "price_per_night": 150.00,
     "max_guests": 2,
     "available_rooms": 15,
-    "image_url": "/assets/images/WEBP/treehouse.webp"
+    "image_url": "/assets/images/webp/treehouse.webp"
   },
   {
     "name": "Family Cabin",
@@ -21,7 +21,7 @@
     "price_per_night": 180.00,
     "max_guests": 6,
     "available_rooms": 20,
-    "image_url": "/assets/images/WEBP/family-cabin.webp"
+    "image_url": "/assets/images/webp/family-cabin.webp"
   },
   {
     "name": "Glamping Tent",
@@ -29,6 +29,6 @@
     "price_per_night": 120.00,
     "max_guests": 2,
     "available_rooms": 25,
-    "image_url": "/assets/images/WEBP/glamping-tent.webp"
+    "image_url": "/assets/images/webp/glamping-tent.webp"
   }
 ]
