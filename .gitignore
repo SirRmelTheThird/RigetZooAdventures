@@ -15,14 +15,22 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# Claude
+.claude/
+
+# Plans
+plans/
+
+# Husky
+.husky/
+
+# Coding standards
+CODING_STANDARD.md
+
 # Logs
 *.log
-logs/
-!logs/.gitkeep
 
 # Storage & Cache
-storage/cache/*
-!storage/cache/.gitkeep
 storage/logs/*
 !storage/logs/.gitkeep
 
