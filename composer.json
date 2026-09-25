@@ -1,17 +1,24 @@
+
 {
     "name": "riget/zoo-adventures",
     "description": "Zoo booking system with Eloquent ORM",
     "type": "project",
+    "license": "MIT",
     "require": {
         "php": ">=8.2",
         "ext-mbstring": "*",
         "illuminate/database": "^11.0",
-        "stripe/stripe-php": "19.0",
+        "stripe/stripe-php": "^19.0",
         "vlucas/phpdotenv": "^5.5"
     },
     "autoload": {
         "psr-4": {
-            "": "src/",
+            "Bootstrap\\": "src/Bootstrap/",
+            "Controllers\\": "src/Controllers/",
+            "Core\\": "src/Core/",
+            "Exceptions\\": "src/Exceptions/",
+            "Models\\": "src/Models/",
+            "Services\\": "src/Services/",
             "Config\\": "config/",
             "Database\\Migrations\\": "database/migrations/",
             "Database\\Seeders\\": "database/seeders/"
