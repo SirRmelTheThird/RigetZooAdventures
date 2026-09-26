@@ -372,6 +372,14 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 Keep the Stripe CLI running while testing webhooks.
 
+To start the Stripe webhook server and listen for events:
+
+```bash
+stripe listen --forward-to localhost:8000/webhook/stripe
+```
+
+This starts the webhook listener and forwards events to your local application.
+
 ### Production Webhook
 
 1. Go to https://dashboard.stripe.com/webhooks.

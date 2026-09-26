@@ -7,6 +7,10 @@ echo Starting PHP development server...
 echo Visit: http://localhost:8000
 echo.
 echo Press Ctrl+C to stop the server
+
+echo.
+echo To start the Stripe webhook server, run:
+echo stripe listen --forward-to localhost:8000/webhook/stripe
 echo ========================================
 echo.
 
