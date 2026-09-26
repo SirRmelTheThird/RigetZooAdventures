@@ -36,3 +36,4 @@ temp/
 *TMP*               # Added for MEMORY_TMP_...
 .php-cs-fixer.cache  # Added for PHP CS Fixer cache
 /.phpunit.cache    # Added for PHP CS Fixer cache
+.txt
