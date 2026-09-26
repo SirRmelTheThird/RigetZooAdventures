@@ -37,3 +37,9 @@ temp/
 .php-cs-fixer.cache  # Added for PHP CS Fixer cache
 /.phpunit.cache    # Added for PHP CS Fixer cache
 .txt
+*.cache
+.php-cs-fixer.cache
+MEMORY_TMP_skipped_phpstan_fix.txt
+.php-cs-fixer.cache
+*.cache
+.php-cs-fixer.cache
