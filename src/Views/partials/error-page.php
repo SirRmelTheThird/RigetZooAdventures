@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 use Core\View\Format;
 
-/**
- * @var array{code: string, title: string, message: string}  $error
- * @var array{label: string, href: string}                   $home
- */
 ?>
 <section class="rz-auth__card rz-error rz-reveal" aria-labelledby="error-title">
     <p class="rz-error__code"><?= Format::e($error['code']) ?></p>

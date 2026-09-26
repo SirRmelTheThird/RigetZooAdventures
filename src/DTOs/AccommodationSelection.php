@@ -7,7 +7,7 @@ namespace DTOs;
 final class AccommodationSelection
 {
     public function __construct(
-        public readonly int $id,
+        public readonly string $id,
         public readonly string $startDate,
         public readonly string $endDate,
         public readonly int $guests,

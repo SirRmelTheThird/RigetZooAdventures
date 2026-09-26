@@ -11,7 +11,7 @@ final class AccommodationItem implements CartItem
     private const REQUIRED_KEYS = ['id', 'name', 'startDate', 'endDate', 'nights', 'pricePerNight', 'guests'];
 
     public function __construct(
-        public readonly int $accommodationId,
+        public readonly string $accommodationId,
         public readonly string $name,
         public readonly string $startDate,
         public readonly string $endDate,
@@ -26,7 +26,7 @@ final class AccommodationItem implements CartItem
         InvalidCartPayloadException::unlessHasKeys($data, self::REQUIRED_KEYS);
 
         return new self(
-            (int) $data['id'],
+            (string) $data['id'],
             (string) $data['name'],
             (string) $data['startDate'],
             (string) $data['endDate'],

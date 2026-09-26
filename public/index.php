@@ -18,7 +18,8 @@ $root = dirname(__DIR__);
 $container = new Container($root);
 $router = $container->router();
 
-require $root . '/routes.php';
+$registerRoutes = require $root . '/routes.php';
+$registerRoutes($router);
 
 $request = Request::fromGlobals();
 

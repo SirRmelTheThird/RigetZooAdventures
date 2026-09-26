@@ -6,7 +6,6 @@ use Core\Constants\SessionKey;
 use Core\Session;
 use Core\View\View;
 
-// Flash messages are read once, so they are collected in one place.
 $success = Session::getFlash(SessionKey::SUCCESS);
 $error = Session::getFlash(SessionKey::ERROR);
 $errors = Session::getFlash(SessionKey::VALIDATION_ERRORS);

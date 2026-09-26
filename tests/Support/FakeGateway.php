@@ -14,6 +14,8 @@ class FakeGateway implements PaymentGateway
 {
     /** @var string[] */
     public array $refunded = [];
+    /** @var string[] */
+    public array $refundKeys = [];
     public bool $refundFails = false;
     public ?PaymentIntentState $state = null;
 
@@ -27,17 +29,18 @@ class FakeGateway implements PaymentGateway
         return $this->state;
     }
 
-    public function refund(string $intentId): void
+    public function refund(string $intentId, string $idempotencyKey): void
     {
         if ($this->refundFails) {
             throw new PaymentException('refund failed');
         }
 
         $this->refunded[] = $intentId;
+        $this->refundKeys[] = $idempotencyKey;
     }
 
     public function parseWebhook(string $payload, string $signature): WebhookEvent
     {
-        return new WebhookEvent('x', null, null, null);
+        return new WebhookEvent('x', '', null, null, null);
     }
 }

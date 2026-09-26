@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Repositories;
+namespace Repositories\Contracts;
 
 use Enums\TicketCategory;
 use Enums\TicketType;
@@ -12,7 +12,5 @@ use Models\Ticket;
 interface CatalogRepository
 {
     public function priceFor(TicketType $type, TicketCategory $category): ?Ticket;
-
-    /** @return Collection<int, Ticket> */
     public function forType(TicketType $type): Collection;
 }

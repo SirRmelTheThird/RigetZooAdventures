@@ -40,7 +40,7 @@ final class Messages
     public const PAYMENT_UNVERIFIABLE = 'We could not verify this payment. Please contact support.';
     public const BOOKING_REFUNDED = '%s Your payment has been refunded.';
     public const REFUND_FAILED = 'Your booking failed and the automatic refund did not go through. Please contact support.';
-    public const ORDER_PLACED = 'Order #%d placed successfully! Thank you for your booking.';
+    public const ORDER_PLACED = 'Order #%s placed successfully! Thank you for your booking.';
 
     // HTTP
     public const PAGE_NOT_FOUND = 'Page not found';

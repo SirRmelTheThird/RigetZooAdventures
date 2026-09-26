@@ -6,8 +6,13 @@ namespace Enums;
 
 enum OrderStatus: string
 {
-    case Pending = 'Pending';
-    case Paid = 'Paid';
-    case Cancelled = 'Cancelled';
-    case Failed = 'Failed';
+    case Pending = 'pending';
+    case Paid = 'paid';
+    case Cancelled = 'cancelled';
+    case Failed = 'failed';
+
+    public function label(): string
+    {
+        return ucfirst($this->value);
+    }
 }

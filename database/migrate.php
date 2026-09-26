@@ -8,6 +8,7 @@ $migrations = [
     'CreateAccommodationsTable',
     'CreateOrdersTable',
     'CreateOrderItemsTable',
+    'CreateAccommodationAvailabilitiesTable',
     'CreateRewardPointsTable',
 ];
 

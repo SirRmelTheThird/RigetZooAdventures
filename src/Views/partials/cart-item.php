@@ -4,15 +4,8 @@ declare(strict_types=1);
 
 use Core\CSRF;
 use Core\Constants\RedirectKey;
-use Core\View\CartItemView;
 use Core\View\Format;
 
-/**
- * One row in the cart or checkout review.
- *
- * @var CartItemView                             $view
- * @var array{key: string, label: string}|null   $remove null on checkout, where rows are read-only
- */
 ?>
 <article class="rz-line rz-reveal">
     <div class="rz-line__main">

@@ -49,7 +49,7 @@ final class Session
         self::regenerate();
     }
 
-    public static function signIn(int $customerId, string $username, string $firstName, string $email): void
+    public static function signIn(string $customerId, string $username, string $firstName, string $email): void
     {
         self::regenerate();
 
@@ -116,22 +116,22 @@ final class Session
     }
 
 
-    public static function userId(): int
+    public static function userId(): string
     {
         if (!self::isLoggedIn()) {
             throw AuthException::loginRequired();
         }
 
-        return (int) $_SESSION[SessionKey::CUSTOMER_ID];
+        return (string) $_SESSION[SessionKey::CUSTOMER_ID];
     }
 
-    public static function getUserId(): ?int
+    public static function getUserId(): ?string
     {
         if (!isset($_SESSION[SessionKey::CUSTOMER_ID])) {
             return null;
         }
 
-        return (int) $_SESSION[SessionKey::CUSTOMER_ID];
+        return (string) $_SESSION[SessionKey::CUSTOMER_ID];
     }
 
     public static function getUsername(): ?string

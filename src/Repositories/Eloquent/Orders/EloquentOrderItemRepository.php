@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Repositories;
+namespace Repositories\Eloquent\Orders;
 
 use Enums\ItemType;
 use Models\OrderItem;
+use Repositories\Contracts\OrderItemRepository;
 
 final class EloquentOrderItemRepository implements OrderItemRepository
 {

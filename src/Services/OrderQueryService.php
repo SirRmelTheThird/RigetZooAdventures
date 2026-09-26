@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Services;
 
 use Illuminate\Database\Eloquent\Collection;
-use Models\Order;
-use Models\OrderItem;
-use Repositories\OrderQueryRepository;
+use Repositories\Contracts\OrderQueryRepository;
 
 final class OrderQueryService
 {
@@ -17,17 +15,11 @@ final class OrderQueryService
     ) {
     }
 
-    /**
-     * @return Collection<int, Order>
-     */
-    public function ordersFor(int $customerId): Collection
+    public function ordersFor(string $customerId): Collection
     {
         $orders = $this->orders->ordersForCustomerWithItems($customerId);
-
         $items = new Collection($orders->pluck('items')->collapse());
-
         $this->itemLoader->load($items);
-
         return $orders;
     }
 }

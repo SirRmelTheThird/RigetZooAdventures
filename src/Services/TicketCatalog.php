@@ -8,7 +8,7 @@ use Enums\TicketCategory;
 use Enums\TicketType;
 use Exceptions\NotFoundException;
 use Illuminate\Database\Eloquent\Collection;
-use Repositories\CatalogRepository;
+use Repositories\Contracts\CatalogRepository;
 use Support\Messages;
 
 final class TicketCatalog

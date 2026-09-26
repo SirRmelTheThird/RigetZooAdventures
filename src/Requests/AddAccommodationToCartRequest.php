@@ -11,7 +11,7 @@ use Support\Messages;
 final class AddAccommodationToCartRequest
 {
     private const RULES = [
-        'id' => ['required', 'integer', 'min:1'],
+        'id' => ['required', 'uuid'],
         'start_date' => ['required', 'date', 'futureDate'],
         'end_date' => ['required', 'date', 'futureDate'],
         'guests' => ['required', 'integer', 'min:1'],
@@ -32,7 +32,7 @@ final class AddAccommodationToCartRequest
         $result->throwIfFailed();
 
         return new AccommodationSelection(
-            (int) $input['id'],
+            (string) $input['id'],
             (string) $input['start_date'],
             (string) $input['end_date'],
             (int) $input['guests'],

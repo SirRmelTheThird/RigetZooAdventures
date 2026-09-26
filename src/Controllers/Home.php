@@ -42,7 +42,7 @@ final class Home
         $user = $this->auth->findAuthenticatedCustomer($customerId);
 
         if ($user === null) {
-            Session::invalidate();
+            $this->auth->invalidateSession();
 
             return Response::redirect(RedirectKey::LOGIN);
         }

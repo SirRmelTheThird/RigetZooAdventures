@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core\View;
 
+use Enums\TicketCategory;
 use RuntimeException;
 
 final class ViewException extends RuntimeException

@@ -35,18 +35,18 @@ use Requests\BookTicketRequest;
 use Requests\LoginRequest;
 use Requests\RemoveCartItemRequest;
 use Requests\SignupRequest;
-use Repositories\AccommodationRepository;
-use Repositories\CatalogRepository;
-use Repositories\EloquentAccommodationRepository;
-use Repositories\EloquentCatalogRepository;
-use Repositories\EloquentOrderItemRepository;
-use Repositories\EloquentOrderQueryRepository;
-use Repositories\EloquentOrderRepository;
-use Repositories\EloquentTicketRepository;
-use Repositories\OrderItemRepository;
-use Repositories\OrderQueryRepository;
-use Repositories\OrderRepository;
-use Repositories\TicketRepository;
+use Repositories\Contracts\AccommodationRepository;
+use Repositories\Contracts\CatalogRepository;
+use Repositories\Eloquent\Accommodation\EloquentAccommodationRepository;
+use Repositories\Eloquent\Catalog\EloquentCatalogRepository;
+use Repositories\Eloquent\Orders\EloquentOrderItemRepository;
+use Repositories\Eloquent\Orders\EloquentOrderQueryRepository;
+use Repositories\Eloquent\Orders\EloquentOrderRepository;
+use Repositories\Eloquent\Tickets\EloquentTicketRepository;
+use Repositories\Contracts\OrderItemRepository;
+use Repositories\Contracts\OrderQueryRepository;
+use Repositories\Contracts\OrderRepository;
+use Repositories\Contracts\TicketRepository;
 use Services\AccommodationService;
 use Services\AuthService;
 use Services\BookingService;
@@ -63,6 +63,7 @@ use Services\PaymentWebhookHandler;
 use Services\RewardService;
 use Services\TicketCatalog;
 use Services\TicketInventory;
+use Services\OrderWriter;
 use Stripe\StripeClient;
 
 final class Container
@@ -76,42 +77,42 @@ final class Container
 
     public function make(string $class): object
     {
-        return match ($class) {
-            Home::class => new Home(
+        $factories = [
+            Home::class => fn (): Home => new Home(
                 $this->views(),
                 $this->orderQueries(),
                 $this->auth()
             ),
 
-            Auth::class => new Auth(
+            Auth::class => fn (): Auth => new Auth(
                 $this->views(),
                 $this->auth(),
                 new LoginRequest($this->validator()),
                 new SignupRequest($this->validator())
             ),
 
-            CartController::class => new CartController(
+            CartController::class => fn (): CartController => new CartController(
                 $this->views(),
                 $this->carts(),
                 $this->rewards(),
                 new RemoveCartItemRequest($this->validator())
             ),
 
-            Ticket::class => new Ticket(
+            Ticket::class => fn (): Ticket => new Ticket(
                 $this->views(),
                 $this->catalog(),
                 $this->carts(),
                 new BookTicketRequest($this->validator())
             ),
 
-            Accommodation::class => new Accommodation(
+            Accommodation::class => fn (): Accommodation => new Accommodation(
                 $this->views(),
                 $this->accommodations(),
                 $this->carts(),
                 new AddAccommodationToCartRequest($this->validator())
             ),
 
-            Payment::class => new Payment(
+            Payment::class => fn (): Payment => new Payment(
                 $this->views(),
                 $this->carts(),
                 $this->checkout(),
@@ -119,13 +120,15 @@ final class Container
                 $this->stripeSettings()
             ),
 
-            AuthMiddleware::class => new AuthMiddleware(),
-            CSRFMiddleware::class => new CSRFMiddleware(),
+            AuthMiddleware::class => fn (): AuthMiddleware => new AuthMiddleware(),
+            CSRFMiddleware::class => fn (): CSRFMiddleware => new CSRFMiddleware(),
+        ];
 
-            default => throw new ContainerException(
-                "Nothing is registered for {$class}"
-            ),
-        };
+        if (!array_key_exists($class, $factories)) {
+            throw new ContainerException("Nothing is registered for {$class}");
+        }
+
+        return $factories[$class]();
     }
 
     public function router(): Router
@@ -341,18 +344,29 @@ final class Container
         );
     }
 
+    private function orderWriter(): OrderWriter
+    {
+        return $this->once(
+            OrderWriter::class,
+            fn (): OrderWriter => new OrderWriter(
+                $this->orderRepository(),
+                $this->orderItemRepository(),
+                $this->inventory(),
+                $this->accommodations()
+            )
+        );
+    }
+
     private function bookings(): BookingService
     {
         return $this->once(
             BookingService::class,
             fn (): BookingService => new BookingService(
                 $this->db(),
-                $this->inventory(),
-                $this->accommodations(),
                 $this->rewards(),
                 $this->logger(),
                 $this->orderRepository(),
-                $this->orderItemRepository()
+                $this->orderWriter()
             )
         );
     }

@@ -9,7 +9,7 @@ use Enums\TicketType;
 use Exceptions\CartException;
 use Exceptions\NotFoundException;
 use Models\Ticket;
-use Repositories\TicketRepository;
+use Repositories\Contracts\TicketRepository;
 use Support\Messages;
 
 final class TicketInventory

@@ -5,14 +5,6 @@ declare(strict_types=1);
 use Core\View\Format;
 use Core\View\View;
 
-/**
- * Opens the auth card: brand, back link, icon, heading and any flashed errors.
- * Pair with auth-close after the form.
- *
- * @var array<string, mixed> $auth  content/auth.php
- * @var array<string, mixed> $page  the "login" or "signup" block
- * @var bool                 $wide  wider card for the sign-up form
- */
 ?>
 <div class="rz-auth__wrap<?= Format::when($wide, ' rz-auth__wrap--wide') ?>">
     <div class="rz-auth__brand rz-reveal">

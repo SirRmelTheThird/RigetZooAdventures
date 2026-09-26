@@ -87,6 +87,7 @@ final class CheckoutServiceTest extends TestCase
         } catch (PaymentException) {
             self::assertSame(0, $placer->calls);
             self::assertSame(['pi_1'], $gateway->refunded);
+            self::assertSame(['refund:pi_1'], $gateway->refundKeys);
         }
     }
 

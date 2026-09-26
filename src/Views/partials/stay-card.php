@@ -8,12 +8,12 @@ use Core\View\Format;
 use Core\View\View;
 
 /**
- * One bookable accommodation.
- *
- * @var object                $accommodation Eloquent Accommodation
- * @var array<string, string> $copy          content/stays.php "card" block
+ * @var object $accommodation
+ * @var array<string, string> $copy
+ * @var array<int, array{start_date: string, end_date: string}> $unavailable default []
  */
 $id = (int) $accommodation->id;
+$unavailable = $unavailable ?? [];
 $pills = [];
 if (!empty($accommodation->location)) {
     $pills[] = $accommodation->location;
@@ -21,6 +21,16 @@ if (!empty($accommodation->location)) {
 $pills[] = $copy['max_guests_prefix'] . $accommodation->max_guests . ' guests';
 
 $imageUrl = (string) $accommodation->image_url;
+$unavailableJson = json_encode($unavailable, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT);
+
+// Compute outer bounds for min/max
+$allStarts = array_column($unavailable, 'start_date');
+$allEnds = array_column($unavailable, 'end_date');
+$globalMin = $allStarts ? min($allStarts) : Format::isoDate();
+$globalMax = $allEnds ? max($allEnds) : null;
+if ($globalMax !== null && $globalMax <= Format::isoDate()) {
+    $globalMax = null;
+}
 ?>
 <article class="rz-stay rz-reveal">
     <?php
@@ -48,14 +58,23 @@ $imageUrl = (string) $accommodation->image_url;
             'name' => 'start_date',
             'label' => $copy['check_in'],
             'type' => 'date',
-            'attrs' => ['min' => Format::isoDate(), 'data-range-start' => ''],
+            'attrs' => [
+                'min' => Format::isoDate(),
+                'max' => $globalMax ?? '',
+                'data-range-start' => '',
+                'data-unavailable' => $unavailableJson,
+            ],
         ]);
 View::partial('form-field', [
     'id' => 'end_date_' . $id,
     'name' => 'end_date',
     'label' => $copy['check_out'],
     'type' => 'date',
-    'attrs' => ['min' => Format::isoDate('+1 day'), 'data-range-end' => ''],
+    'attrs' => [
+        'min' => Format::isoDate('+1 day'),
+        'max' => $globalMax ?? '',
+        'data-range-end' => '',
+    ],
 ]);
 ?>
 

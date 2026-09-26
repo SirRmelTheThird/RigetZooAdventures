@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace Core\View;
 
+use Enums\OrderStatus;
+
 final class OrderPresenter
 {
-    private const STATUS_CLASSES = [
-        'Paid' => 'rz-status--paid',
-        'Cancelled' => 'rz-status--cancelled',
-    ];
-    private const STATUS_CLASS_PENDING = 'rz-status--pending';
-
     private const LABEL_TICKET = 'Ticket';
     private const LABEL_ACCOMMODATION = 'Accommodation';
     private const LABEL_OTHER_ITEM = 'Booking item';
@@ -20,13 +16,14 @@ final class OrderPresenter
     private const DATE_SHORT = 'M j';
     private const DATE_LONG = 'M j, Y';
 
-    public static function statusClass(string $status): string
+    public static function statusClass(OrderStatus $status): string
     {
-        if (array_key_exists($status, self::STATUS_CLASSES)) {
-            return self::STATUS_CLASSES[$status];
-        }
-
-        return self::STATUS_CLASS_PENDING;
+        return match ($status) {
+            OrderStatus::Pending   => 'rz-status--pending',
+            OrderStatus::Paid      => 'rz-status--paid',
+            OrderStatus::Cancelled => 'rz-status--cancelled',
+            OrderStatus::Failed    => 'rz-status--failed',
+        };
     }
 
     public static function itemSummary(object $item): string

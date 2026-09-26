@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\View;
 
+use App\Factories\ContentFactory;
+
 final class View
 {
     private const PARTIALS_DIR = 'partials';
@@ -30,26 +32,31 @@ final class View
         })($file, $props);
     }
 
-    public static function content(string $name): array
+    public static function content(string $interface): object
     {
-        if (array_key_exists($name, self::$contentCache)) {
-            return self::$contentCache[$name];
+        if (array_key_exists($interface, self::$contentCache)) {
+            return self::$contentCache[$interface];
         }
 
+        $name = ContentFactory::fileFor($interface);
         $file = self::resolve(self::CONTENT_DIR, $name);
+
         if (!is_file($file)) {
             throw ViewException::contentNotFound($name);
         }
 
         $content = require $file;
+
         if (!is_array($content)) {
             throw ViewException::invalidContent($name);
         }
 
-        self::$contentCache[$name] = $content;
+        $objectContent = ContentFactory::create($interface, $content);
 
-        return $content;
-    }
+        self::$contentCache[$interface] = $objectContent;
+
+        return $objectContent;
+}
 
     private static function resolve(string $directory, string $name): string
     {

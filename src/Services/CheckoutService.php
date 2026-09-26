@@ -27,7 +27,7 @@ final class CheckoutService
     }
 
     /** @throws CartException|PaymentException */
-    public function begin(int $customerId, Cart $cart): PaymentIntentRef
+    public function begin(string $customerId, Cart $cart): PaymentIntentRef
     {
         $this->assertNotEmpty($cart);
 
@@ -37,7 +37,7 @@ final class CheckoutService
         ]);
     }
 
-    public function complete(int $customerId, Cart $cart, string $intentId): int
+    public function complete(string $customerId, Cart $cart, string $intentId): string
     {
         $this->assertNotEmpty($cart);
 
@@ -80,7 +80,7 @@ final class CheckoutService
     private function refundAndFail(string $intentId, string $reason, string $redirectTo, bool $appendRefundNotice): never
     {
         try {
-            $this->gateway->refund($intentId);
+            $this->gateway->refund($intentId, 'refund:' . $intentId);
         } catch (PaymentException $e) {
             $this->logger->error('Refund failed, manual action required', ['payment_intent_id' => $intentId]);
 

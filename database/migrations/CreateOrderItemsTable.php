@@ -9,11 +9,11 @@ class CreateOrderItemsTable
     public function up()
     {
         Capsule::schema()->create('order_items', function ($table) {
-            $table->id();
-            $table->unsignedBigInteger('order_id');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('order_id');
             $table->enum('item_type', ['Ticket', 'Accommodation']);
-            $table->unsignedBigInteger('ticket_id')->nullable();
-            $table->unsignedBigInteger('accommodation_id')->nullable();
+            $table->foreignUuid('ticket_id')->nullable();
+            $table->foreignUuid('accommodation_id')->nullable();
             $table->integer('quantity')->default(1);
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();

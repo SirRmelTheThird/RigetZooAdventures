@@ -54,7 +54,7 @@ final class AuthService
             'last_name' => $registration->lastName,
             'username' => $registration->username,
             'email' => $registration->email,
-            'password' => password_hash($registration->password, PASSWORD_DEFAULT),
+            'password' => $registration->password, // setPasswordAttribute mutator handles hashing
         ]);
 
         $this->logger->info('Customer registered', ['customer_id' => $customer->id]);
@@ -62,8 +62,13 @@ final class AuthService
         return $customer;
     }
 
-    public function findAuthenticatedCustomer(int $customerId): ?Customer
+    public function findAuthenticatedCustomer(string $customerId): ?Customer
     {
         return Customer::with('rewardPoints')->find($customerId);
+    }
+
+    public function invalidateSession(): void
+    {
+        \Core\Session::invalidate();
     }
 }

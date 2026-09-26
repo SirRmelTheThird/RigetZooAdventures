@@ -9,7 +9,7 @@ class CreateTicketsTable
     public function up()
     {
         Capsule::schema()->create('tickets', function ($table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('type', 50);
             $table->string('category', 50);
             $table->decimal('price', 10, 2);

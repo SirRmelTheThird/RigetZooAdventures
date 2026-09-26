@@ -48,7 +48,6 @@ final class Payment
         }
 
         Session::set(SessionKey::PAYMENT_INTENT, $intent->id);
-
         return $this->views->render('checkout', [...$viewData, 'clientSecret' => $intent->clientSecret]);
     }
 
@@ -84,7 +83,6 @@ final class Payment
         }
 
         $this->webhooks->handle($request->rawBody(), $signature);
-
         return Response::empty(HttpStatus::Ok);
     }
 }

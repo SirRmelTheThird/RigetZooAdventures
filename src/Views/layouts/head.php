@@ -31,4 +31,24 @@ if (isset($pageTitle)) {
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/css/styles.css">
+<script>
+(function(){
+  document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('[data-unavailable]').forEach(function(input){
+      try{
+        var ranges=JSON.parse(input.getAttribute('data-unavailable'));
+        if(!ranges||!ranges.length) return;
+        input.addEventListener('change',function(){
+          var v=input.value;
+          for(var i=0;i<ranges.length;i++){
+            if(v>=ranges[i].start_date&&v<=ranges[i].end_date){
+              input.value=''; input.style.backgroundColor='#eee'; input.style.color='#999';
+            }
+          }
+        });
+      }catch(e){}
+    });
+  });
+})();
+</script>
 </head>

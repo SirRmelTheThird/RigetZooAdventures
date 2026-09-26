@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Repositories;
+namespace Repositories\Eloquent\Tickets;
 
 use Enums\TicketCategory;
 use Illuminate\Database\Eloquent\Collection;
 use Exceptions\NotFoundException;
 use Models\Ticket;
 use Support\Messages;
+use Repositories\Contracts\TicketRepository;
 
 final class EloquentTicketRepository implements TicketRepository
 {
-    public function findById(int $ticketId): ?Ticket
+    public function findById(string $ticketId): ?Ticket
     {
         return Ticket::find($ticketId);
     }

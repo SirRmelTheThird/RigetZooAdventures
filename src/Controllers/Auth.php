@@ -33,9 +33,8 @@ final class Auth
     {
         $customer = $this->auth->authenticate($this->loginRequest->parse($request->body()));
 
-        Session::signIn((int) $customer->id, (string) $customer->username, (string) $customer->first_name, (string) $customer->email);
+        Session::signIn((string) $customer->id, (string) $customer->username, (string) $customer->first_name, (string) $customer->email);
         Session::flashSuccess(Messages::LOGGED_IN);
-
         return Response::redirect(RedirectKey::HOME);
     }
 
@@ -47,9 +46,7 @@ final class Auth
     public function signup(Request $request): Response
     {
         $this->auth->register($this->signupRequest->parse($request->body()));
-
         Session::flashSuccess(Messages::ACCOUNT_CREATED);
-
         return Response::redirect(RedirectKey::LOGIN);
     }
 
@@ -57,7 +54,6 @@ final class Auth
     {
         Session::invalidate();
         Session::flashSuccess(Messages::LOGGED_OUT);
-
         return Response::redirect(RedirectKey::HOME);
     }
 }

@@ -11,7 +11,7 @@ use Enums\OrderStatus;
 use Exceptions\CartException;
 use Illuminate\Database\Eloquent\Collection;
 use Models\Accommodation;
-use Repositories\AccommodationRepository;
+use Repositories\Contracts\AccommodationRepository;
 use Support\Messages;
 
 final class AccommodationService
@@ -40,7 +40,7 @@ final class AccommodationService
         $this->assertAvailable($accommodation, $selection->startDate, $selection->endDate);
 
         return new AccommodationItem(
-            (int) $accommodation->id,
+            (string) $accommodation->id,
             (string) $accommodation->name,
             $selection->startDate,
             $selection->endDate,
@@ -50,7 +50,7 @@ final class AccommodationService
         );
     }
 
-    public function lockForBooking(int $accommodationId, string $startDate, string $endDate): Accommodation
+    public function lockForBooking(string $accommodationId, string $startDate, string $endDate): Accommodation
     {
         $accommodation = $this->accommodations->lockForBooking($accommodationId, $startDate, $endDate);
 
@@ -76,6 +76,11 @@ final class AccommodationService
                 $order->whereNotIn('order_status', [OrderStatus::Cancelled->value, OrderStatus::Failed->value]);
             })
             ->count();
+    }
+
+    public function unavailableRanges(string $accommodationId): array
+    {
+        return $this->accommodations->getUnavailableRanges($accommodationId);
     }
 
     private static function nights(string $startDate, string $endDate): int

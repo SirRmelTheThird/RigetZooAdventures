@@ -32,13 +32,6 @@ final class PaymentWebhookHandler
             throw $e;
         }
 
-        $key = $event->intentId ?? md5($payload);
-        if (isset($this->processed[$key])) {
-            $this->logger->info('Webhook replay ignored', ['key' => $key]);
-            return;
-        }
-        $this->processed[$key] = true;
-
         $type = WebhookEventType::tryFrom($event->type);
 
         if ($type === null) {
@@ -46,6 +39,16 @@ final class PaymentWebhookHandler
 
             return;
         }
+
+        $key = $event->intentId ?? md5($payload);
+
+        if (isset($this->processed[$key])) {
+            $this->logger->info('Webhook replay ignored', ['key' => $key]);
+
+            return;
+        }
+
+        $this->processed[$key] = true;
 
         match ($type) {
             WebhookEventType::PaymentSucceeded => $this->handlePaymentSucceeded($event),
@@ -58,7 +61,11 @@ final class PaymentWebhookHandler
         $context = $this->context($event);
 
         $this->logger->info('Payment succeeded', $context);
-        $this->discord->paymentSucceeded($event->intentId, $event->amountMinorUnits);
+
+        $this->discord->paymentSucceeded(
+            $event->intentId,
+            $event->amountMinorUnits
+        );
     }
 
     private function handlePaymentFailed(WebhookEvent $event): void
@@ -66,7 +73,12 @@ final class PaymentWebhookHandler
         $context = $this->context($event);
 
         $this->logger->warning('Payment failed', $context);
-        $this->discord->paymentFailed($event->intentId, $event->failureMessage, $event->amountMinorUnits, );
+
+        $this->discord->paymentFailed(
+            $event->intentId,
+            $event->failureMessage,
+            $event->amountMinorUnits
+        );
     }
 
     private function context(WebhookEvent $event): array

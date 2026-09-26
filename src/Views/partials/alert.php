@@ -1,13 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
 use Core\View\Format;
 
-/**
- * @var string       $tone     "success" or "error"
- * @var list<string> $messages
- */
 $roles = ['success' => 'status', 'error' => 'alert'];
 $icons = ['success' => 'check_circle', 'error' => 'error'];
 ?>

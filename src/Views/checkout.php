@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\CheckoutContentInterface;
 use Core\Constants\RedirectKey;
 use Core\CSRF;
 use Core\View\CartItemPresenter;
@@ -11,13 +12,13 @@ use Core\View\View;
 $pageTitle = 'Checkout';
 require __DIR__ . '/layouts/header.php';
 
-$content = View::content('checkout');
-$payment = $content['payment'];
+$content = View::content(CheckoutContentInterface::class);
+$payment = $content->getPayment();
 $items = array_map([CartItemPresenter::class, 'present'], $cart['items']);
 ?>
 
 <div class="rz-container rz-page">
-    <?php View::partial('page-header', ['header' => $content['header']]); ?>
+    <?php View::partial('page-header', ['header' => $content->getHeader()]); ?>
 
     <div class="rz-checkout rz-checkout--pay">
         <div>
@@ -42,12 +43,12 @@ $items = array_map([CartItemPresenter::class, 'present'], $cart['items']);
 
         <?php
         View::partial('order-review', [
-            'title' => $content['summary']['title'],
+            'title' => $content->getSummary()['title'],
             'items' => $items,
-            'labels' => $content['summary'],
+            'labels' => $content->getSummary(),
             'total' => (float) $cart['total'],
         ]);
-?>
+        ?>
     </div>
 </div>
 

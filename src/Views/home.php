@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Models\HomeContentInterface;
 use Core\View\Format;
 use Core\View\View;
 
 $pageTitle = 'Home';
 require __DIR__ . '/layouts/header.php';
 
-$home = View::content('home');
-$hero = $home['hero'];
-$visit = $home['visit'];
+$home = View::content(HomeContentInterface::class);
+$hero = $home->getHero();
+$visit = $home->getVisit();
 [$featuredTile, $stayTile, $attractionTile] = $visit['tiles'];
 ?>
 
@@ -31,7 +32,7 @@ $visit = $home['visit'];
 </section>
 
 <section class="rz-container rz-facts rz-reveal" aria-label="At a glance">
-    <?php foreach ($home['facts'] as $fact): ?>
+    <?php foreach ($home->getFacts() as $fact): ?>
         <div class="rz-fact">
             <span class="material-symbols-outlined" aria-hidden="true"><?= Format::e($fact['icon']) ?></span>
             <div>

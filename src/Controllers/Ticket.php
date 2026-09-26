@@ -56,9 +56,7 @@ final class Ticket
     private function addToCart(Request $request, TicketType $type): Response
     {
         $this->carts->addTickets($this->bookRequest->parse($request->body(), $type));
-
         Session::flashSuccess(Messages::TICKETS_ADDED);
-
         return Response::redirect(RedirectKey::CART);
     }
 }

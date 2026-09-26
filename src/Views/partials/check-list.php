@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use Core\View\Format;
 
-/**
- * @var list<string> $items
- */
 ?>
 <ul class="rz-checks">
     <?php foreach ($items as $item): ?>

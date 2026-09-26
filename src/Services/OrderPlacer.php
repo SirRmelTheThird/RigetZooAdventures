@@ -8,5 +8,5 @@ use Cart\Cart;
 
 interface OrderPlacer
 {
-    public function placePaidOrder(int $customerId, Cart $cart, string $paymentIntentId): int;
+    public function placePaidOrder(string $customerId, Cart $cart, string $paymentIntentId): string;
 }

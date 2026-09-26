@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\View;
 
+use Enums\TicketCategory;
+
 final readonly class TicketPricing
 {
     private function __construct(

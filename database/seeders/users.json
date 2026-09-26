@@ -22,5 +22,125 @@
     "first_name": "Admin",
     "last_name": "User",
     "phone": "555-0100"
+  },
+  {
+    "username": "testuser1",
+    "email": "test1@example.com",
+    "password": "test1231",
+    "first_name": "Test",
+    "last_name": "User1",
+    "phone": "555-100"
+  },
+  {
+    "username": "testuser2",
+    "email": "test2@example.com",
+    "password": "test1232",
+    "first_name": "Test",
+    "last_name": "User2",
+    "phone": "555-101"
+  },
+  {
+    "username": "testuser3",
+    "email": "test3@example.com",
+    "password": "test1233",
+    "first_name": "Test",
+    "last_name": "User3",
+    "phone": "555-102"
+  },
+  {
+    "username": "testuser4",
+    "email": "test4@example.com",
+    "password": "test1234",
+    "first_name": "Test",
+    "last_name": "User4",
+    "phone": "555-103"
+  },
+  {
+    "username": "testuser5",
+    "email": "test5@example.com",
+    "password": "test1235",
+    "first_name": "Test",
+    "last_name": "User5",
+    "phone": "555-104"
+  },
+  {
+    "username": "testuser6",
+    "email": "test6@example.com",
+    "password": "test1236",
+    "first_name": "Test",
+    "last_name": "User6",
+    "phone": "555-105"
+  },
+  {
+    "username": "testuser7",
+    "email": "test7@example.com",
+    "password": "test1237",
+    "first_name": "Test",
+    "last_name": "User7",
+    "phone": "555-106"
+  },
+  {
+    "username": "testuser8",
+    "email": "test8@example.com",
+    "password": "test1238",
+    "first_name": "Test",
+    "last_name": "User8",
+    "phone": "555-107"
+  },
+  {
+    "username": "testuser9",
+    "email": "test9@example.com",
+    "password": "test1239",
+    "first_name": "Test",
+    "last_name": "User9",
+    "phone": "555-108"
+  },
+  {
+    "username": "testuser10",
+    "email": "test10@example.com",
+    "password": "test12310",
+    "first_name": "Test",
+    "last_name": "User10",
+    "phone": "555-109"
+  },
+  {
+    "username": "testuser11",
+    "email": "test11@example.com",
+    "password": "test12311",
+    "first_name": "Test",
+    "last_name": "User11",
+    "phone": "555-110"
+  },
+  {
+    "username": "testuser12",
+    "email": "test12@example.com",
+    "password": "test12312",
+    "first_name": "Test",
+    "last_name": "User12",
+    "phone": "555-111"
+  },
+  {
+    "username": "testuser13",
+    "email": "test13@example.com",
+    "password": "test12313",
+    "first_name": "Test",
+    "last_name": "User13",
+    "phone": "555-112"
+  },
+  {
+    "username": "testuser14",
+    "email": "test14@example.com",
+    "password": "test12314",
+    "first_name": "Test",
+    "last_name": "User14",
+    "phone": "555-113"
+  },
+  {
+    "username": "testuser15",
+    "email": "test15@example.com",
+    "password": "test12315",
+    "first_name": "Test",
+    "last_name": "User15",
+    "phone": "555-114"
   }
 ]

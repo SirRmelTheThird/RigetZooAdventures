@@ -20,7 +20,10 @@ final class StripeGateway implements PaymentGateway
     private const METADATA_CUSTOMER_ID = 'customer_id';
     private const STATUS_SUCCEEDED = 'succeeded';
     private const INTENT_EVENT_PREFIX = 'payment_intent.';
-    private const SUPPORTED_EVENTS = ['payment_intent.succeeded', 'payment_intent.payment_failed'];
+    private const SUPPORTED_EVENTS = [
+        WebhookEventType::PaymentSucceeded->value,
+        WebhookEventType::PaymentFailed->value,
+    ];
 
     public function __construct(
         private readonly StripeClient $client,
@@ -61,14 +64,18 @@ final class StripeGateway implements PaymentGateway
             $intent->id,
             $intent->status === self::STATUS_SUCCEEDED,
             (int) $intent->amount,
+            (string) $intent->currency,
             $this->customerId($intent->metadata),
         );
     }
 
-    public function refund(string $intentId): void
+    public function refund(string $intentId, string $idempotencyKey): void
     {
         try {
-            $this->client->refunds->create(['payment_intent' => $intentId]);
+            $this->client->refunds->create(
+                ['payment_intent' => $intentId],
+                ['idempotency_key' => $idempotencyKey],
+            );
         } catch (ApiErrorException $e) {
             $this->logger->exception($e, ['payment_intent_id' => $intentId]);
 
@@ -78,13 +85,6 @@ final class StripeGateway implements PaymentGateway
 
     public function parseWebhook(string $payload, string $signature): WebhookEvent
     {
-        $secret = $this->settings->webhookSecret;
-
-        $this->logger->info('Stripe webhook configuration', [
-            'configured' => $secret !== '',
-            'length' => strlen($secret),
-        ]);
-
         try {
             $event = Webhook::constructEvent($payload, $signature, $this->settings->webhookSecret);
         } catch (UnexpectedValueException | SignatureVerificationException $e) {
@@ -92,21 +92,33 @@ final class StripeGateway implements PaymentGateway
         }
 
         if (!in_array($event->type, self::SUPPORTED_EVENTS, true)) {
-            return new WebhookEvent($event->type, null, null, null);
+            return new WebhookEvent($event->id, $event->type, null, null, null);
         }
 
         $intent = $event->data->object;
 
-        return new WebhookEvent($event->type, (string) $intent->id, (int) $intent->amount, $this->failureMessage($intent));
+        return new WebhookEvent(
+            $event->id,
+            $event->type,
+            (string) $intent->id,
+            (int) $intent->amount,
+            $this->failureMessage($intent),
+        );
     }
 
-    private function customerId(StripeObject $metadata): ?int
+    private function customerId(array $metadata): ?string
     {
-        if (!isset($metadata[self::METADATA_CUSTOMER_ID])) {
+        $customerId = $metadata[self::METADATA_CUSTOMER_ID] ?? null;
+
+        if (!is_string($customerId) || $customerId === '') {
             return null;
         }
 
-        return (int) $metadata[self::METADATA_CUSTOMER_ID];
+        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $customerId)) {
+            return null;
+        }
+
+        return $customerId;
     }
 
     private function failureMessage(StripeObject $intent): ?string

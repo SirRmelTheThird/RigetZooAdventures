@@ -10,7 +10,8 @@ final class PaymentIntentState
         public readonly string $id,
         public readonly bool $succeeded,
         public readonly int $amountMinorUnits,
-        public readonly ?int $customerId,
+        public readonly string $currency,
+        public readonly ?string $customerId,
     ) {
     }
 }

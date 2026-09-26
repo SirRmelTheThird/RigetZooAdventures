@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Capsule\Manager as Capsule;
 use Models\Customer;
 use Models\Ticket;
 use Models\Accommodation;
@@ -34,7 +35,7 @@ class DatabaseSeeder
                 'last_name' => $userData['last_name'],
                 'username' => $userData['username'],
                 'email' => $userData['email'],
-                'password' => $userData['password']
+                'id' => (string) uniqid(), 'password' => $userData['password']
             ]);
         }
 
@@ -47,7 +48,7 @@ class DatabaseSeeder
         $tickets = json_decode(file_get_contents($jsonPath), true);
 
         foreach ($tickets as $ticket) {
-            Ticket::create($ticket);
+            Ticket::create(array_merge($ticket, ["id" => (string) uniqid()]));
         }
 
         echo "Seeded: tickets (" . count($tickets) . " types)\n";
@@ -59,7 +60,7 @@ class DatabaseSeeder
         $accommodations = json_decode(file_get_contents($jsonPath), true);
 
         foreach ($accommodations as $accommodation) {
-            Accommodation::create($accommodation);
+            Accommodation::create(array_merge($accommodation, ["id" => (string) uniqid()]));
         }
 
         echo "Seeded: accommodations (" . count($accommodations) . " options)\n";

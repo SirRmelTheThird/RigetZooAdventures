@@ -23,7 +23,6 @@ final class SessionCartStore implements CartStore
         }
 
         try {
-            /** @var mixed $raw */
             $raw = $this->session->get(SessionKey::CART);
 
             return Cart::fromArray((array) $raw);

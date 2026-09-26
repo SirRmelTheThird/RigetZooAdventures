@@ -26,15 +26,21 @@ final class Accommodation
 
     public function index(Request $request): Response
     {
-        return $this->views->render('accommodations/index', ['accommodations' => $this->accommodations->all()]);
+        $accommodations = $this->accommodations->all();
+        $withUnavailable = [];
+        foreach ($accommodations as $a) {
+            $withUnavailable[] = [
+                'accommodation' => $a,
+                'unavailable' => $this->accommodations->unavailableRanges((string) $a->id),
+            ];
+        }
+        return $this->views->render('accommodations/index', ['items' => $withUnavailable]);
     }
 
     public function addToCart(Request $request): Response
     {
         $this->carts->addAccommodation($this->addRequest->parse($request->body()));
-
         Session::flashSuccess(Messages::ACCOMMODATION_ADDED);
-
         return Response::redirect(RedirectKey::CART);
     }
 }

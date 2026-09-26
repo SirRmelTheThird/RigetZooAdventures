@@ -23,7 +23,7 @@ final class AddAccommodationToCartRequestTest extends TestCase
         $this->expectException(ValidationException::class);
 
         $this->request->parse([
-            'id' => '3',
+            'id' => '3a1d0c2e-4b5f-6789-abcd-ef0123456789',
             'guests' => '2',
             'start_date' => '2099-05-05',
             'end_date' => '2099-05-05',
@@ -33,12 +33,24 @@ final class AddAccommodationToCartRequestTest extends TestCase
     public function testValidDateRangeParses(): void
     {
         $dto = $this->request->parse([
-            'id' => '3',
+            'id' => '3a1d0c2e-4b5f-6789-abcd-ef0123456789',
             'guests' => '2',
             'start_date' => '2099-05-05',
             'end_date' => '2099-05-08',
         ]);
 
-        self::assertSame(3, $dto->id);
+        self::assertSame('3a1d0c2e-4b5f-6789-abcd-ef0123456789', $dto->id);
+    }
+
+    public function testNumericIdsAreRejected(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        $this->request->parse([
+            'id' => '3',
+            'guests' => '2',
+            'start_date' => '2099-05-05',
+            'end_date' => '2099-05-08',
+        ]);
     }
 }
