@@ -43,7 +43,7 @@ final class RouterTest extends TestCase
             }
         };
 
-        $router = (new Router(static fn (string $class): object => match ($class) {
+        $router = (Router::withResolver(static fn (string $class): object => match ($class) {
             'Middleware\\Blocker' => $blocker,
             default => new EchoController(),
         }))->get('/z', 'Echo@hello', ['Blocker']);
@@ -53,7 +53,7 @@ final class RouterTest extends TestCase
 
     public function testAuthMiddlewareBlocksAnonymousUsers(): void
     {
-        $router = (new Router($this->authResolver()))->get('/p', 'Echo@hello', ['AuthMiddleware']);
+        $router = (Router::withResolver($this->authResolver()))->get('/p', 'Echo@hello', ['AuthMiddleware']);
 
         $this->expectException(AuthException::class);
         $router->dispatch(new Request('GET', '/p'));
@@ -61,7 +61,7 @@ final class RouterTest extends TestCase
 
     public function testAuthMiddlewareAllowsAuthenticatedUsersThrough(): void
     {
-        $router = (new Router($this->authResolver()))->get('/p', 'Echo@hello', ['AuthMiddleware']);
+        $router = (Router::withResolver($this->authResolver()))->get('/p', 'Echo@hello', ['AuthMiddleware']);
         $_SESSION = ['customer_id' => 5, 'username' => 'u'];
 
         self::assertSame('hi', $router->dispatch(new Request('GET', '/p'))->body());

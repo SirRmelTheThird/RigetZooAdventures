@@ -7,6 +7,7 @@ namespace Tests\Unit\Core;
 use Core\Validation\InvalidRuleException;
 use Core\Validation\Validator;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ValidatorTest extends TestCase
@@ -81,9 +82,7 @@ final class ValidatorTest extends TestCase
         self::assertFalse($this->validator->validate(['d' => 'tomorrow'], $rules)->passes());
     }
 
-    /**
-     * @dataProvider malformedRuleProvider
-     */
+    #[DataProvider('malformedRuleProvider')]
     public function testMalformedRuleStringsFailLoudly(array $rules): void
     {
         $this->expectException(InvalidRuleException::class);

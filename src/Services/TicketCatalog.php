@@ -8,16 +8,18 @@ use Enums\TicketCategory;
 use Enums\TicketType;
 use Exceptions\NotFoundException;
 use Illuminate\Database\Eloquent\Collection;
-use Models\Ticket;
+use Repositories\CatalogRepository;
 use Support\Messages;
 
 final class TicketCatalog
 {
+    public function __construct(private readonly CatalogRepository $catalog)
+    {
+    }
+
     public function priceFor(TicketType $type, TicketCategory $category): float
     {
-        $ticket = Ticket::where('type', $type->value)
-            ->where('category', $category->value)
-            ->first();
+        $ticket = $this->catalog->priceFor($type, $category);
 
         if ($ticket === null) {
             throw new NotFoundException(sprintf(Messages::TICKET_NOT_FOUND, $type->value, $category->value));
@@ -26,9 +28,9 @@ final class TicketCatalog
         return (float) $ticket->price;
     }
 
-    /** @return Collection<int, Ticket> */
+    /** @return Collection<int, \Models\Ticket> */
     public function forType(TicketType $type): Collection
     {
-        return Ticket::ofType($type->value)->orderBy('category')->get();
+        return $this->catalog->forType($type);
     }
 }

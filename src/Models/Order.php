@@ -7,6 +7,9 @@ namespace Models;
 use Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin \Illuminate\Database\Eloquent\Builder<Order>
+ */
 class Order extends Model
 {
     protected $table = 'orders';

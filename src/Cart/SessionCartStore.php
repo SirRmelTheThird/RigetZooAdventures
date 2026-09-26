@@ -6,25 +6,30 @@ namespace Cart;
 
 use Core\Constants\SessionKey;
 use Core\Logging\Logger;
-use Core\Session;
+use Core\SessionStore;
 
 final class SessionCartStore implements CartStore
 {
-    public function __construct(private readonly Logger $logger)
-    {
+    public function __construct(
+        private readonly SessionStore $session,
+        private readonly Logger $logger,
+    ) {
     }
 
     public function load(): Cart
     {
-        if (!Session::has(SessionKey::CART)) {
+        if (!$this->session->has(SessionKey::CART)) {
             return Cart::empty();
         }
 
         try {
-            return Cart::fromArray((array) Session::get(SessionKey::CART));
+            /** @var mixed $raw */
+            $raw = $this->session->get(SessionKey::CART);
+
+            return Cart::fromArray((array) $raw);
         } catch (InvalidCartPayloadException $e) {
             $this->logger->warning('Discarded unreadable cart', ['reason' => $e->getMessage()]);
-            Session::remove(SessionKey::CART);
+            $this->session->remove(SessionKey::CART);
 
             return Cart::empty();
         }
@@ -33,11 +38,11 @@ final class SessionCartStore implements CartStore
     public function save(Cart $cart): void
     {
         if ($cart->isEmpty()) {
-            Session::remove(SessionKey::CART);
+            $this->session->remove(SessionKey::CART);
 
             return;
         }
 
-        Session::set(SessionKey::CART, $cart->toArray());
+        $this->session->set(SessionKey::CART, $cart->toArray());
     }
 }

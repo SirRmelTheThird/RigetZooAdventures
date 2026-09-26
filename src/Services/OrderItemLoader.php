@@ -6,9 +6,13 @@ namespace Services;
 
 use Enums\ItemType;
 use Illuminate\Database\Eloquent\Collection;
+use Models\OrderItem;
 
 final class OrderItemLoader
 {
+    /**
+     * @param Collection<int, OrderItem> $items
+     */
     public function load(Collection $items): void
     {
         $ticketItems = $items->where(

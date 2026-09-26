@@ -11,18 +11,23 @@ use Enums\OrderStatus;
 use Exceptions\CartException;
 use Illuminate\Database\Eloquent\Collection;
 use Models\Accommodation;
+use Repositories\AccommodationRepository;
 use Support\Messages;
 
 final class AccommodationService
 {
+    public function __construct(private readonly AccommodationRepository $accommodations)
+    {
+    }
+
     public function all(): Collection
     {
-        return Accommodation::all();
+        return $this->accommodations->all();
     }
 
     public function quote(AccommodationSelection $selection): AccommodationItem
     {
-        $accommodation = Accommodation::find($selection->id);
+        $accommodation = $this->accommodations->findById($selection->id);
 
         if ($accommodation === null) {
             throw new CartException(Messages::ACCOMMODATION_NOT_FOUND);
@@ -47,11 +52,7 @@ final class AccommodationService
 
     public function lockForBooking(int $accommodationId, string $startDate, string $endDate): Accommodation
     {
-        $accommodation = Accommodation::lockForUpdate()->find($accommodationId);
-
-        if ($accommodation === null) {
-            throw new CartException(Messages::ACCOMMODATION_NOT_FOUND);
-        }
+        $accommodation = $this->accommodations->lockForBooking($accommodationId, $startDate, $endDate);
 
         $this->assertAvailable($accommodation, $startDate, $endDate);
 

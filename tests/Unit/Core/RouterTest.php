@@ -23,14 +23,14 @@ final class RouterTest extends TestCase
 
     public function testMatchesExactMethodAndPathAndNormalisesTrailingSlash(): void
     {
-        $router = (new Router($this->resolver()))->get('/hi', 'Echo@hello');
+        $router = (Router::withResolver($this->resolver()))->get('/hi', 'Echo@hello');
 
         self::assertSame('hi', $router->dispatch(new Request('GET', '/hi/'))->body());
     }
 
     public function testWrongMethodIs404(): void
     {
-        $router = (new Router($this->resolver()))->get('/hi', 'Echo@hello');
+        $router = (Router::withResolver($this->resolver()))->get('/hi', 'Echo@hello');
 
         $this->expectException(NotFoundException::class);
         $router->dispatch(new Request('POST', '/hi'));
@@ -38,7 +38,7 @@ final class RouterTest extends TestCase
 
     public function testUnknownPathIs404(): void
     {
-        $router = (new Router($this->resolver()))->get('/hi', 'Echo@hello');
+        $router = (Router::withResolver($this->resolver()))->get('/hi', 'Echo@hello');
 
         $this->expectException(NotFoundException::class);
         $router->dispatch(new Request('GET', '/nope'));
@@ -47,18 +47,18 @@ final class RouterTest extends TestCase
     public function testRejectsABadHandlerAtRegistration(): void
     {
         $this->expectException(LogicException::class);
-        (new Router($this->resolver()))->get('/a', 'nope');
+        (Router::withResolver($this->resolver()))->get('/a', 'nope');
     }
 
     public function testRejectsADuplicateRouteAtRegistration(): void
     {
         $this->expectException(LogicException::class);
-        (new Router($this->resolver()))->get('/a', 'Echo@hello')->get('/a', 'Echo@hello');
+        (Router::withResolver($this->resolver()))->get('/a', 'Echo@hello')->get('/a', 'Echo@hello');
     }
 
     public function testAControllerThatReturnsANonResponseIsALoudError(): void
     {
-        $router = (new Router($this->resolver()))->get('/b', 'Echo@broken');
+        $router = (Router::withResolver($this->resolver()))->get('/b', 'Echo@broken');
 
         $this->expectException(LogicException::class);
         $router->dispatch(new Request('GET', '/b'));
@@ -66,7 +66,7 @@ final class RouterTest extends TestCase
 
     public function testAMistypedMiddlewareNameIsAnError(): void
     {
-        $router = (new Router($this->resolver()))->get('/p', 'Echo@hello', ['AuthMidleware']);
+        $router = (Router::withResolver($this->resolver()))->get('/p', 'Echo@hello', ['AuthMidleware']);
 
         $this->expectException(LogicException::class);
         $router->dispatch(new Request('GET', '/p'));

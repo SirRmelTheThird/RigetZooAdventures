@@ -14,7 +14,7 @@ final class RewardService
 
     public function pointsFor(float $total): int
     {
-        return intdiv((int) round($total * self::PENCE_PER_POUND) * self::POINTS_PER_POUND, self::PENCE_PER_POUND);
+        return (int) round($total * self::PENCE_PER_POUND);
     }
 
     public function award(int $customerId, int $orderId, float $total): void

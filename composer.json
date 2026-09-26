@@ -3,6 +3,13 @@
     "description": "Zoo booking system with Eloquent ORM",
     "type": "project",
     "license": "MIT",
+    "scripts": {
+        "lint": "phpcs --standard=PSR12 src tests",
+        "format": "php-cs-fixer fix src tests",
+        "format:check": "php-cs-fixer fix --dry-run --diff src tests",
+        "analyse": "phpstan analyse src tests",
+        "test": "phpunit"
+    },
     "require": {
         "php": ">=8.2",
         "ext-mbstring": "*",
@@ -12,15 +19,11 @@
     },
     "autoload": {
         "psr-4": {
-            "Bootstrap\\": "src/Bootstrap/",
-            "Controllers\\": "src/Controllers/",
-            "Core\\": "src/Core/",
-            "Exceptions\\": "src/Exceptions/",
-            "Models\\": "src/Models/",
-            "Services\\": "src/Services/",
+            "": "src/",
             "Config\\": "config/",
             "Database\\Migrations\\": "database/migrations/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "Tests\\Support\\": "tests/Support/"
         }
     },
     "config": {

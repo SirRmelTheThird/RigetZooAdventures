@@ -18,11 +18,26 @@ The application allows users to register, browse tickets and accommodation optio
 
 The project follows a service-oriented architecture, with dedicated services for authentication, booking, checkout, payments, notifications, and other application functionality.
 
+### 🏗️ Architecture Overview
+
+- **MVC pattern** — Controllers handle HTTP requests, Models manage data via Eloquent ORM, and Views render PHP templates.
+- **Repository pattern** — `src/Repositories/` provides interfaces (`AccommodationRepository`, `OrderRepository`, etc.) with Eloquent implementations to decouple business logic from database access.
+- **Dependency injection** — `src/Bootstrap/Container.php` registers and injects services (`BookingService`, `AuthService`, `TicketInventory`, etc.) into controllers and middleware.
+- **Service layer** — `src/Services/` encapsulates business logic (booking, checkout, payments, notifications) independent of routing and data access.
+
+### 🔒 Security Practices
+
+- **Passwords** — Hashed with `password_hash()` using `PASSWORD_DEFAULT` (bcrypt), verified with `password_verify()`.
+- **CSRF** — `CSRFMiddleware` validates tokens on state-changing requests.
+- **Session regeneration** — Sessions are regenerated on login and logout (`session_regenerate_id()`).
+- **Protected routes** — `AuthMiddleware` checks authentication before allowing access to checkout, profile, and order endpoints.
+- **Webhook replay guard** — `PaymentWebhookHandler` uses a `processed` array with `md5` fingerprints to prevent replay attacks.
+
 ## ✨ Features
 
-* User authentication with bcrypt password hashing and session management
-* CSRF protection and session regeneration on login
-* Role-aware authentication and protected routes
+* User authentication with bcrypt password hashing (`PASSWORD_DEFAULT`) and session management
+* CSRF protection (`CSRFMiddleware`) and session regeneration on login
+* Role-aware authentication (`AuthMiddleware`) and protected routes
 * Ticket booking with standard and premium ticket categories
 * Accommodation reservations with availability and date-overlap checking
 * Session-based shopping cart with ticket and accommodation support
@@ -42,13 +57,20 @@ The project follows a service-oriented architecture, with dedicated services for
 | ---------------------------- | ----------------------------------------------------------------------------------- |
 | `public`                     | Web root, front controller, public assets, and entry point                          |
 | `src/Bootstrap`              | Application bootstrapping and dependency injection container                        |
+| `src/Cart`                   | Shopping cart entities and session store                                            |
 | `src/Controllers`            | HTTP request handlers and application endpoints                                     |
-| `src/Models`                 | Eloquent ORM models and database relationships                                      |
-| `src/Services`               | Business logic for authentication, booking, checkout, payments, and notifications   |
-| `src/Core`                   | Framework components, routing, sessions, validation, logging, and response handling |
+| `src/Core`                   | Framework components: routing, sessions, validation, logging, views, and response handling |
+| `src/DTOs`                   | Data transfer objects for request payloads                                          |
+| `src/Enums`                  | Shared enumerations (order status, ticket type, item type)                          |
 | `src/Exceptions`             | Custom exception classes and application error handling                             |
+| `src/Middleware`             | HTTP middleware (authentication, CSRF)                                              |
+| `src/Models`                 | Eloquent ORM models and database relationships                                      |
+| `src/Payments`               | Payment gateway abstractions and Stripe integration                                 |
+| `src/Repositories`           | Data access layer with Eloquent and query repositories                              |
+| `src/Requests`               | Form request validation classes                                                     |
+| `src/Services`               | Business logic for authentication, booking, checkout, payments, and notifications   |
+| `src/Support`                | Shared helpers and message utilities                                                |
 | `src/Views`                  | PHP templates and error pages                                                       |
-| `src/Services/Notifications` | Notification services, including Discord notifications                              |
 | `database/migrations`        | Database schema migrations                                                          |
 | `database/seeders`           | Database seeders and development data                                               |
 | `config`                     | Application and database configuration                                              |
@@ -61,7 +83,7 @@ The project follows a service-oriented architecture, with dedicated services for
 * PHP 8.2+
 * Eloquent ORM (`illuminate/database` ^11)
 * MySQL / MariaDB
-* Stripe PHP SDK (`stripe/stripe-php` ^13)
+* Stripe PHP SDK (`stripe/stripe-php` ^19)
 * Composer for dependency management and PSR-4 autoloading
 * PHP dotenv (`vlucas/phpdotenv`) for environment configuration
 * Bootstrap 5 for the user interface
@@ -109,6 +131,35 @@ On Windows, you can also copy the file manually:
 
 ```powershell
 Copy-Item .env.example .env
+```
+
+### 📋 Complete .env Variables
+
+```env
+# Application
+APP_ENV=development|production
+APP_DEBUG=true|false
+
+# Database
+DB_HOST=localhost
+DB_NAME=riget_zoo_adventures
+DB_USER=root
+DB_PASSWORD=your_password
+DB_CHARSET=utf8mb4
+DB_COLLATION=utf8mb4_unicode_ci
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_...|sk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...|pk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Discord Notifications
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+
+# Session / Security
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+CSRF_TOKEN_LIFETIME=120
 ```
 
 Edit `.env` with your settings:
@@ -169,9 +220,9 @@ Pick whichever start method is easiest:
 
 | Option               | Command                           | Notes                               |
 | -------------------- | --------------------------------- | ----------------------------------- |
-| Batch File (Windows) | `start-server.bat`                | Starts the local development server |
-| PowerShell (Windows) | `./start-server.ps1`              | Run from a PowerShell terminal      |
-| Manual               | `php -S localhost:8000 -t public` | Starts the PHP development server   |
+| Batch File (Windows) | `start-server.bat`                | Starts `php -S localhost:8000 -t public`; press `Ctrl+C` to stop |
+| PowerShell (Windows) | `./start-server.ps1`              | Same server; run from PowerShell terminal |
+| Manual               | `php -S localhost:8000 -t public` | Starts PHP development server       |
 
 Visit: **http://localhost:8000**
 
@@ -236,7 +287,29 @@ These tools help enforce coding standards, identify potential errors, and mainta
 
 ## 🧪 Testing
 
-Manual testing checklist, end to end:
+The project includes PHPUnit tests across unit, integration, and support fixtures. Tests cover authentication, cart operations, booking, checkout, payments, routing, repositories, services, and middleware.
+
+Run the full test suite:
+
+```bash
+vendor/bin/phpunit
+```
+
+Or using the Composer script:
+
+```bash
+composer test
+```
+
+Test structure:
+
+| Folder | Description |
+| ------------------- | ----------------------------------------------------------------- |
+| `tests/Unit` | Unit tests for controllers, core framework, requests, services, and cart models |
+| `tests/Integration` | Integration tests for authentication, booking, orders, payments, and routing |
+| `tests/Support` | Shared fixtures, fake gateways, and test helpers |
+
+Manual end-to-end checklist (optional):
 
 1. **Sign Up** → Register a new customer account.
 2. **Authentication** → Log in, verify session regeneration, and log out.
@@ -452,23 +525,3 @@ Check the application logs for additional error details:
 storage/logs/app.log
 ```
 
-Keep debug mode disabled in production.
-
-## 🚦 Production Deployment
-
-Before deploying to production:
-
-1. Set `APP_ENV=production` and `APP_DEBUG=false` in `.env`.
-2. Use live Stripe API keys and the correct production webhook signing secret.
-3. Configure the production Stripe webhook endpoint at `https://yourdomain.com/webhook/stripe`.
-4. Enable HTTPS for all application traffic.
-5. Set a strong database password and restrict database access.
-6. Configure production environment variables securely and keep `.env` out of version control.
-7. Ensure the web server document root points to the `public` directory.
-8. Configure proper application error logging and log rotation.
-9. Set up regular database backups and a recovery procedure.
-10. Ensure PHP extensions and Composer dependencies meet the project's requirements.
-11. Run database migrations using the production-safe migration command.
-12. Test authentication, booking, checkout, payment processing, and webhook handling in the production environment.
-13. Verify that development seeders, test accounts, and debugging tools are not exposed in production.
-14. Confirm that payment and order records remain consistent when payment failures or webhook retries occur.

@@ -10,7 +10,7 @@ use Core\Request;
 use Core\Session;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
-require dirname(__DIR__) . '/config/bootstrap.php';
+require dirname(__DIR__) . '/config/Bootstrap.php';
 
 Session::start();
 

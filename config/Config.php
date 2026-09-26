@@ -1,6 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace Config;
+
+use Dotenv\Dotenv;
 
 class Config
 {
@@ -19,30 +22,11 @@ class Config
             throw new \Exception('.env file not found. Copy .env.example to .env and configure your settings.');
         }
 
-        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
 
-        foreach ($lines as $line) {
-            if (strpos(trim($line), '#') === 0) {
-                continue;
-            }
-
-            if (strpos($line, '=') !== false) {
-                list($key, $value) = explode('=', $line, 2);
-                $key = trim($key);
-                $value = trim($value);
-
-                if (preg_match('/^"(.*)"$/', $value, $matches) || preg_match("/^'(.*)'$/", $value, $matches)) {
-                    $value = $matches[1];
-                }
-
-                self::$env[$key] = $value;
-                $_ENV[$key] = $value;
-                $_SERVER[$key] = $value;
-
-                if (!getenv($key)) {
-                    putenv("$key=$value");
-                }
-            }
+        foreach ($_ENV as $key => $value) {
+            self::$env[$key] = is_string($value) ? $value : (string) $value;
         }
 
         self::$loaded = true;

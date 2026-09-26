@@ -17,6 +17,9 @@ class CreateOrdersTable
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('set null');
+
+            // TASK-AUD5-001: composite index for ordersForCustomerWithItems() query pattern
+            $table->index(['customer_id', 'created_at']);
         });
         echo "Created: orders table\n";
     }

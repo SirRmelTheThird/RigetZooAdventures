@@ -11,14 +11,16 @@ use Support\Messages;
 
 final class Router
 {
-    private const CONTROLLER_NAMESPACE = 'Controllers\\';
-    private const MIDDLEWARE_NAMESPACE = 'Middleware\\';
-    private const HANDLER_PATTERN = '/^([A-Za-z0-9_]+)@([A-Za-z0-9_]+)$/';
-
     private array $routes = [];
 
-    public function __construct(private readonly Closure $resolve)
+    public function __construct(
+        private readonly RouteResolutionStrategy $routeResolution,
+    ) {
+    }
+
+    public static function withResolver(Closure $resolve): self
     {
+        return new self(new RouteResolutionStrategy($resolve));
     }
 
     public function get(string $path, string $handler, array $middleware = []): self
@@ -42,7 +44,7 @@ final class Router
         $route = $this->routes[$key];
 
         foreach ($route->middleware as $name) {
-            $response = ($this->resolve)(self::MIDDLEWARE_NAMESPACE . $name)->handle($request);
+            $response = $this->routeResolution->resolveMiddleware($name)->handle($request);
 
             if ($response !== null) {
                 return $response;
@@ -54,7 +56,7 @@ final class Router
 
     private function invoke(Route $route, Request $request): Response
     {
-        $controller = ($this->resolve)($route->controllerClass);
+        $controller = $this->routeResolution->resolveController($route->controllerClass);
 
         if (!method_exists($controller, $route->action)) {
             throw new LogicException("{$route->controllerClass} has no action {$route->action}()");
@@ -71,9 +73,7 @@ final class Router
 
     private function add(string $method, string $path, string $handler, array $middleware): self
     {
-        if (preg_match(self::HANDLER_PATTERN, $handler, $matches) !== 1) {
-            throw new LogicException("Route handler must look like Controller@action, got '{$handler}'");
-        }
+        [$controllerClass, $action] = $this->routeResolution->parseHandler($handler);
 
         $key = self::key($method, $path);
 
@@ -81,7 +81,7 @@ final class Router
             throw new LogicException("Route already registered: {$key}");
         }
 
-        $this->routes[$key] = new Route(self::CONTROLLER_NAMESPACE . $matches[1], $matches[2], $middleware);
+        $this->routes[$key] = new Route($controllerClass, $action, $middleware);
 
         return $this;
     }

@@ -18,7 +18,7 @@ final class CartTest extends TestCase
     {
         $cart = $this->ticketCart(1, 0);
 
-        self::assertSame(19.99, $cart->total());
+        self::assertSame($this->ticketAdultPrice(), $cart->total());
         self::assertSame(1999, $cart->totalMinorUnits(), 'intval(19.99*100) would give 1998');
     }
 
@@ -28,8 +28,8 @@ final class CartTest extends TestCase
         $array = $cart->toArray();
 
         self::assertSame(['items', 'total'], array_keys($array));
-        self::assertSame('ticket', $array['items']['ticket_Standard_2030-01-15']['type']);
-        self::assertSame('accommodation', $array['items']['accommodation_7']['type']);
+        self::assertSame('ticket', $array['items'][$this->ticketKey()]['type']);
+        self::assertSame('accommodation', $array['items'][$this->accommodationKey()]['type']);
         self::assertSame($array, Cart::fromArray($array)->toArray());
     }
 
@@ -48,9 +48,9 @@ final class CartTest extends TestCase
     public function testRemovingAnItemRecomputesTheTotal(): void
     {
         $cart = $this->ticketCart()->with($this->stay());
-        $after = $cart->without('accommodation_7');
+        $after = $cart->without($this->accommodationKey());
 
-        self::assertSame(round(2 * 19.99 + 9.99, 2), $after->total());
+        self::assertSame(round(2 * $this->ticketAdultPrice() + $this->ticketChildPrice(), 2), $after->total());
     }
 
     public function testItemTypeMapsToDbValuesAndBackToCartDiscriminators(): void

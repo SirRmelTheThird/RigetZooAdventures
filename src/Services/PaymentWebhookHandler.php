@@ -13,6 +13,8 @@ use Services\Notifications\DiscordNotificationService;
 
 final class PaymentWebhookHandler
 {
+    private array $processed = [];
+
     public function __construct(
         private readonly PaymentGateway $gateway,
         private readonly Logger $logger,
@@ -29,6 +31,13 @@ final class PaymentWebhookHandler
 
             throw $e;
         }
+
+        $key = $event->intentId ?? md5($payload);
+        if (isset($this->processed[$key])) {
+            $this->logger->info('Webhook replay ignored', ['key' => $key]);
+            return;
+        }
+        $this->processed[$key] = true;
 
         $type = WebhookEventType::tryFrom($event->type);
 

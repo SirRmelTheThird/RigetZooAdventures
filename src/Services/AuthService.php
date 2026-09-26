@@ -54,11 +54,16 @@ final class AuthService
             'last_name' => $registration->lastName,
             'username' => $registration->username,
             'email' => $registration->email,
-            'password' => $registration->password,
+            'password' => password_hash($registration->password, PASSWORD_DEFAULT),
         ]);
 
         $this->logger->info('Customer registered', ['customer_id' => $customer->id]);
 
         return $customer;
+    }
+
+    public function findAuthenticatedCustomer(int $customerId): ?Customer
+    {
+        return Customer::with('rewardPoints')->find($customerId);
     }
 }

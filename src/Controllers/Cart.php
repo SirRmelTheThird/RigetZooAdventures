@@ -38,16 +38,19 @@ final class Cart
     {
         $this->carts->remove($this->removeRequest->parse($request->body()));
 
-        Session::flashSuccess(Messages::ITEM_REMOVED);
-
-        return Response::redirect(RedirectKey::CART);
+        return $this->redirectToCartWithSuccess(Messages::ITEM_REMOVED);
     }
 
     public function clear(Request $request): Response
     {
         $this->carts->clear();
 
-        Session::flashSuccess(Messages::CART_CLEARED);
+        return $this->redirectToCartWithSuccess(Messages::CART_CLEARED);
+    }
+
+    private function redirectToCartWithSuccess(string $message): Response
+    {
+        Session::flashSuccess($message);
 
         return Response::redirect(RedirectKey::CART);
     }

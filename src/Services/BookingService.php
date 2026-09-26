@@ -11,29 +11,31 @@ use Core\Logging\Logger;
 use Enums\ItemType;
 use Enums\OrderStatus;
 use Enums\TicketCategory;
-use Illuminate\Database\Connection;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\ConnectionInterface;
 use LogicException;
 use Models\Order;
-use Models\OrderItem;
+use Repositories\OrderItemRepository;
+use Repositories\OrderRepository;
 
 final class BookingService implements OrderPlacer
 {
     public function __construct(
-        private readonly Connection $db,
+        private readonly ConnectionInterface $db,
         private readonly TicketInventory $inventory,
         private readonly AccommodationService $accommodations,
         private readonly RewardService $rewards,
         private readonly Logger $logger,
+        private readonly OrderRepository $orders,
+        private readonly OrderItemRepository $orderItems,
     ) {
     }
 
     public function placePaidOrder(int $customerId, Cart $cart, string $paymentIntentId): int
     {
-        $existingId = Order::where('stripe_payment_id', $paymentIntentId)->value('id');
+        $existingOrder = $this->orders->findByStripePaymentId($paymentIntentId);
 
-        if ($existingId !== null) {
-            return (int) $existingId;
+        if ($existingOrder !== null) {
+            return (int) $existingOrder->id;
         }
 
         return $this->db->transaction(fn (): int => $this->createOrder($customerId, $cart, $paymentIntentId));
@@ -41,7 +43,17 @@ final class BookingService implements OrderPlacer
 
     private function createOrder(int $customerId, Cart $cart, string $paymentIntentId): int
     {
-        $order = Order::create([
+        $order = $this->buildOrderCore($customerId, $cart, $paymentIntentId);
+        return (int) $order->id;
+    }
+
+    /**
+     * Pure business-logic extraction for focused unit testing (TASK-AUD4-003).
+     * No transaction orchestration; returns constructed Order.
+     */
+    private function buildOrderCore(int $customerId, Cart $cart, string $paymentIntentId): Order
+    {
+        $order = $this->orders->create([
             'customer_id' => $customerId,
             'total_amount' => $cart->total(),
             'order_status' => OrderStatus::Paid->value,
@@ -71,7 +83,7 @@ final class BookingService implements OrderPlacer
             'total' => $cart->total(),
         ]);
 
-        return (int) $order->id;
+        return $order;
     }
 
     private function addTicketLine(Order $order, TicketItem $item, TicketCategory $category, int $quantity, float $unitPrice): void
@@ -82,29 +94,25 @@ final class BookingService implements OrderPlacer
 
         $ticket = $this->inventory->reserve($item->ticketType, $category, $quantity);
 
-        OrderItem::create([
-            'order_id' => $order->id,
-            'item_type' => ItemType::Ticket->value,
-            'ticket_id' => $ticket->id,
-            'quantity' => $quantity,
-            'price' => round($quantity * $unitPrice, 2),
-            'start_date' => $item->date,
-            'end_date' => null,
-        ]);
+        $this->orderItems->createTicketLine(
+            (int) $order->id,
+            (int) $ticket->id,
+            $quantity,
+            round($quantity * $unitPrice, 2),
+            $item->date,
+        );
     }
 
     private function addStay(Order $order, AccommodationItem $item): void
     {
         $accommodation = $this->accommodations->lockForBooking($item->accommodationId, $item->startDate, $item->endDate);
 
-        OrderItem::create([
-            'order_id' => $order->id,
-            'item_type' => ItemType::Accommodation->value,
-            'accommodation_id' => $accommodation->id,
-            'quantity' => 1,
-            'price' => $item->total(),
-            'start_date' => $item->startDate,
-            'end_date' => $item->endDate,
-        ]);
+        $this->orderItems->createAccommodationLine(
+            (int) $order->id,
+            (int) $accommodation->id,
+            $item->total(),
+            $item->startDate,
+            $item->endDate,
+        );
     }
 }

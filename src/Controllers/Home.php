@@ -9,7 +9,7 @@ use Core\Request;
 use Core\Response;
 use Core\Session;
 use Core\ViewRenderer;
-use Models\Customer;
+use Services\AuthService;
 use Services\OrderQueryService;
 
 final class Home
@@ -17,6 +17,7 @@ final class Home
     public function __construct(
         private readonly ViewRenderer $views,
         private readonly OrderQueryService $orders,
+        private readonly AuthService $auth,
     ) {
     }
 
@@ -38,7 +39,7 @@ final class Home
     public function profile(Request $request): Response
     {
         $customerId = Session::userId();
-        $user = Customer::with('rewardPoints')->find($customerId);
+        $user = $this->auth->findAuthenticatedCustomer($customerId);
 
         if ($user === null) {
             Session::invalidate();
