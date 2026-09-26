@@ -1,5 +1,7 @@
 # Environment files
 .env
+.env.local
+.env.*.local
 
 # Dependencies
 vendor/
@@ -31,3 +33,5 @@ CLAUDE.md
 # Temporary files
 tmp/
 temp/
+*TMP*               # Added for MEMORY_TMP_...
+php-cs-fixer.cache  # Added for PHP CS Fixer cache
