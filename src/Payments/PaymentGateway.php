@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Payments;
 
-use Exceptions\InvalidWebhookException;
-use Exceptions\PaymentException;
+use Exceptions\Payment\InvalidWebhookException;
+use Exceptions\Payment\PaymentException;
 
 interface PaymentGateway
 {

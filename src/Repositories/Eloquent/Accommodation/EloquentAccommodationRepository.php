@@ -6,8 +6,8 @@ namespace Repositories\Eloquent\Accommodation;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Collection;
-use Models\Accommodation;
-use Repositories\Contracts\AccommodationRepository;
+use Models\Accommodations\Accommodation;
+use Repositories\Contracts\Accommodation\AccommodationRepository;
 
 final class EloquentAccommodationRepository implements AccommodationRepository
 {
@@ -23,7 +23,7 @@ final class EloquentAccommodationRepository implements AccommodationRepository
 
     public function lockForBooking(string $id, string $startDate, string $endDate): Accommodation
     {
-        return Accommodation::findOrFail($id);
+        return Accommodation::query()->where('id', $id)->lockForUpdate()->firstOrFail();
     }
 
     public function getUnavailableRanges(string $accommodationId): array

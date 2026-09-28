@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Core\Validation;
 
-use Exceptions\ValidationException;
+use Exceptions\Validation\ValidationException;
 
 final class ValidationResult
 {

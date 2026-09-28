@@ -17,14 +17,14 @@
     "type": "premium",
     "category": "adult",
     "price": 100.00,
-    "description": "Premium experience with guided tours and special access",
+    "description": "Premium experience for adults (18+) with additional amenities",
     "available_quantity": 200
   },
   {
     "type": "premium",
     "category": "child",
     "price": 60.00,
-    "description": "Premium experience for children with educational activities",
+    "description": "Premium experience for children (3-17) with additional amenities",
     "available_quantity": 200
   }
 ]

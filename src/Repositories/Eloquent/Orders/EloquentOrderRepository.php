@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Repositories\Eloquent\Orders;
 
 use Illuminate\Database\Eloquent\Collection;
-use Models\Order;
-use Repositories\Contracts\OrderRepository;
+use Models\Orders\Order;
+use Repositories\Contracts\Orders\OrderRepository;
 
 final class EloquentOrderRepository implements OrderRepository
 {
@@ -31,9 +31,9 @@ final class EloquentOrderRepository implements OrderRepository
         return Order::create($data);
     }
 
-    public function nextOrderNumber(string $customerId): int
-    {
-        $max = Order::where('customer_id', $customerId)->max('order_number') ?? 0;
-        return $max + 1;
-    }
+  public function nextOrderNumber(string $customerId): int
+  {
+      return (int) Order::where('customer_id', $customerId)
+          ->max('order_number') + 1;
+  }
 }

@@ -42,8 +42,8 @@
   --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --font-body: "Geist", "Segoe UI", system-ui, -apple-system, sans-serif;
 
-  --container: 73.75rem; /* 1180px, as before */
-  --gutter: clamp(1rem, 4vw, 2rem);
+  --container: 90rem; /* 1440px */
+  --gutter: clamp(1rem, 2vw, 2rem);
   --nav-height: 4.25rem;
 
   --r-control: 12px;
@@ -157,6 +157,7 @@ p { margin: 0; text-wrap: pretty; }
   width: min(100% - (2 * var(--gutter)), var(--container));
   margin-inline: auto;
 }
+
 .rz-main { flex: 1; }
 .rz-page { padding-block: clamp(2.25rem, 5vw, 3.75rem) clamp(3.5rem, 7vw, 5.5rem); }
 .rz-section { padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(3.5rem, 7vw, 5.5rem); }
@@ -393,24 +394,79 @@ p { margin: 0; text-wrap: pretty; }
 .rz-card--raised { box-shadow: var(--shadow-2); }
 .rz-card > h2 { margin-bottom: 0.6rem; }
 
-.rz-callout { margin: 1.25rem 0; padding: 1rem 1.25rem; border-radius: 14px; background: var(--orange-100); }
-.rz-callout p { margin-top: 0.25rem; color: var(--ink-2); font-size: 0.95rem; }
+.rz-callout {
+    margin: 1.25rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    background: var(--orange-100);
+}
+
+.rz-callout p {
+    margin-top: 0.25rem;
+    color: var(--ink-2);
+    font-size: 0.95rem;
+}
+
+.rz-callout ul {
+    margin: 0.75rem 0 0;
+    padding-left: 1.25rem;
+    list-style: disc;
+    color: var(--ink-2);
+    font-size: 0.95rem;
+}
+
+.rz-callout li {
+    display: list-item;
+    margin-bottom: 0.35rem;
+}
+
+.rz-callout li:last-child {
+    margin-bottom: 0;
+}
 
 .rz-alert {
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-  margin-bottom: 1.25rem;
-  padding: 0.9rem 1.1rem;
-  border: 1px solid transparent;
-  border-radius: 14px;
-  font-size: 0.975rem;
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: center;
+    gap: 0.75rem;
+    align-self: stretch;
+    margin-bottom: 1.25rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    font-size: 0.9rem;
 }
-.rz-alert .material-symbols-outlined { flex: none; font-size: 1.35rem; }
-.rz-alert p { margin: 0.1rem 0; }
-.rz-alert ul { margin: 0; padding-left: 1.1rem; }
-.rz-alert--success { background: var(--sage-100); border-color: var(--sage-300); color: var(--forest-800); }
-.rz-alert--error { background: var(--danger-bg); border-color: #f0c4ba; color: var(--danger-ink); }
+
+.rz-alert .material-symbols-outlined {
+    flex: none;
+    font-size: 1.35rem;
+}
+
+/* .rz-alert p {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+} */
+
+.rz-alert ul {
+    /* flex: 1;
+    min-width: 0;
+    margin: 0; */
+    padding-left: 1.1rem;
+}
+
+.rz-alert--success {
+    background: var(--sage-100);
+    border-color: var(--sage-300);
+    color: var(--forest-800);
+}
+
+.rz-alert--error {
+    background: var(--danger-bg);
+    border-color: #f0c4ba;
+    color: var(--danger-ink);
+}
 .rz-flash { padding-top: 1.5rem; }
 .rz-flash + .rz-page,
 .rz-flash + .rz-hero { padding-top: 1rem; }
@@ -599,6 +655,7 @@ p { margin: 0; text-wrap: pretty; }
 
 /* ---------- Stays ---------- */
 .rz-stays { display: grid; gap: 1.5rem; }
+
 .rz-stay {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
@@ -611,7 +668,36 @@ p { margin: 0; text-wrap: pretty; }
 }
 .rz-stay:hover { box-shadow: var(--shadow-2); }
 .rz-stay__body { display: flex; flex-direction: column; gap: 0.9rem; padding: clamp(1.5rem, 3vw, 2.25rem); }
-.rz-stay__form { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; align-items: end; margin-top: 0.5rem; padding-top: 1.5rem; border-top: 1px solid var(--hairline); }
+.rz-stay__form {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rz-border, #e5e5e5);
+}
+.rz-stay__dates {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.rz-stay__guests {
+    width: 100%;
+}
+
+.rz-stay__guests select {
+    width: 100%;
+    min-height: 48px;
+}
+
+.rz-stay__reserve {
+    width: 100%;
+    min-height: 48px;
+}
+
+
+
+
 .rz-stay__form .rz-btn { grid-column: 2; margin-bottom: 1.1rem; }
 .rz-price { font-family: var(--font-display); font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; }
 .rz-price small { color: var(--ink-3); font-family: var(--font-body); font-size: 0.95rem; font-weight: 500; letter-spacing: 0; }

@@ -33,7 +33,7 @@ trait CartFixtures
 
     private function stay(int $id = 7): AccommodationItem
     {
-        return new AccommodationItem($id, 'Lodge', '2030-02-01', '2030-02-04', 3, 120.0, 2);
+        return new AccommodationItem((string) $id, 'Lodge', '2030-02-01', '2030-02-04', 3, 120.0, 2);
     }
 
     private function ticketDate(): string

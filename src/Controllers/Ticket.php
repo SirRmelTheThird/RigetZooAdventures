@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Controllers;
 
 use Core\Constants\RedirectKey;
-use Core\Request;
-use Core\Response;
-use Core\Session;
-use Core\ViewRenderer;
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Session\Session;
+use Core\View\ViewRenderer;
 use Enums\TicketType;
-use Requests\BookTicketRequest;
-use Services\CartService;
-use Services\TicketCatalog;
+use Requests\Tickets\BookTicketRequest;
+use Services\Checkout\CartService;
+use Services\Tickets\TicketCatalog;
 use Support\Messages;
 
 final class Ticket

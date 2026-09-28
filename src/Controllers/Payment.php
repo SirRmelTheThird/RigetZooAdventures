@@ -6,16 +6,16 @@ namespace Controllers;
 
 use Core\Constants\RedirectKey;
 use Core\Constants\SessionKey;
-use Core\HttpStatus;
-use Core\Request;
-use Core\Response;
-use Core\Session;
-use Core\ViewRenderer;
-use Exceptions\PaymentException;
+use Core\Http\HttpStatus;
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Session\Session;
+use Core\View\ViewRenderer;
+use Exceptions\Payment\PaymentException;
 use Payments\StripeSettings;
-use Services\CartService;
-use Services\CheckoutService;
-use Services\PaymentWebhookHandler;
+use Services\Checkout\CartService;
+use Services\Checkout\CheckoutService;
+use Services\Checkout\PaymentWebhookHandler;
 use Support\Messages;
 
 final class Payment

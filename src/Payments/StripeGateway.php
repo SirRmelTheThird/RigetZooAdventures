@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Payments;
 
 use Core\Logging\Logger;
-use Exceptions\InvalidWebhookException;
-use Exceptions\PaymentException;
+use Exceptions\Payment\InvalidWebhookException;
+use Exceptions\Payment\PaymentException;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\StripeClient;
@@ -106,9 +106,9 @@ final class StripeGateway implements PaymentGateway
         );
     }
 
-    private function customerId(array $metadata): ?string
+    private function customerId(StripeObject $metadata): ?string
     {
-        $customerId = $metadata[self::METADATA_CUSTOMER_ID] ?? null;
+        $customerId = $metadata->{self::METADATA_CUSTOMER_ID} ?? null;
 
         if (!is_string($customerId) || $customerId === '') {
             return null;

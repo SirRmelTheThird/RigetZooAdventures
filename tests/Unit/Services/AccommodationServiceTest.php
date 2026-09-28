@@ -6,13 +6,13 @@ namespace Tests\Unit\Services;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
-use Services\AccommodationService;
+use Services\Accommodations\AccommodationService;
 
 final class AccommodationServiceTest extends TestCase
 {
     public function testServiceExists(): void
     {
-        self::assertTrue(class_exists('Services\AccommodationService'));
+        self::assertTrue(class_exists('Services\Accommodations\AccommodationService'));
     }
 
     public function testRepositorySeamUsedNoInlineImport(): void

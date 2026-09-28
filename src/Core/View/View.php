@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Core\View;
 
-use App\Factories\ContentFactory;
+use Factories\ContentFactory;
 
 final class View
 {

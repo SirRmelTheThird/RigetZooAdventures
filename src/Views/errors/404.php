@@ -3,11 +3,12 @@
 declare(strict_types=1);
 
 use Core\View\View;
+use Contracts\ErrorsContentInterface;
 
 View::bind(dirname(__DIR__));
 
-$content = View::content('errors');
-$error = $content['not_found'];
+$content = View::content(ErrorsContentInterface::class);
+$error = $content->getNotFound();
 
 if (isset($message)) {
     $error['message'] = $message;
@@ -16,6 +17,6 @@ if (isset($message)) {
 $pageTitle = $error['page_title'];
 require __DIR__ . '/../layouts/bare-header.php';
 
-View::partial('error-page', ['error' => $error, 'home' => $content['home']]);
+View::partial('feedback/error-page', ['error' => $error, 'home' => $content->getHome()]);
 
 require __DIR__ . '/../layouts/bare-footer.php';

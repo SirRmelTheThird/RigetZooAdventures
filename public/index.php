@@ -6,8 +6,8 @@ ini_set('display_errors', '1');
 error_reporting(E_ALL);
 
 use Bootstrap\Container;
-use Core\Request;
-use Core\Session;
+use Core\Http\Request;
+use Core\Session\Session;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 require dirname(__DIR__) . '/config/Bootstrap.php';

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Controllers;
 
 use Core\Constants\RedirectKey;
-use Core\Request;
-use Core\Response;
-use Core\Session;
-use Core\ViewRenderer;
-use Requests\LoginRequest;
-use Requests\SignupRequest;
-use Services\AuthService;
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Session\Session;
+use Core\View\ViewRenderer;
+use Requests\Auth\LoginRequest;
+use Requests\Auth\SignupRequest;
+use Services\Auth\AuthService;
 use Support\Messages;
 
 final class Auth

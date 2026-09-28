@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use DTOs\LoginCredentials;
-use DTOs\Registration;
-use Services\AuthService;
+use Services\Auth\AuthService;
 use Core\Logging\Logger;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\MemoryLogWriter;

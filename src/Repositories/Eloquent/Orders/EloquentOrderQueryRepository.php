@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Repositories\Eloquent\Orders;
 
 use Illuminate\Database\Eloquent\Collection;
-use Models\Order;
-use Repositories\Contracts\OrderQueryRepository;
+use Models\Orders\Order;
+use Repositories\Contracts\Orders\OrderQueryRepository;
 
 final class EloquentOrderQueryRepository implements OrderQueryRepository
 {

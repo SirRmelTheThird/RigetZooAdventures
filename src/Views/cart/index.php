@@ -2,12 +2,18 @@
 
 declare(strict_types=1);
 
-use App\Models\CartContentInterface;
+use Contracts\CartContentInterface;
 use Core\Constants\RedirectKey;
 use Core\CSRF;
 use Core\View\CartItemPresenter;
 use Core\View\Format;
 use Core\View\View;
+
+/**
+ * @var array $cart
+ * @var int|float $points
+ */
+
 
 $pageTitle = 'Cart';
 require __DIR__ . '/../layouts/header.php';
@@ -18,11 +24,11 @@ $empty = $content->getEmpty();
 ?>
 
 <div class="rz-container rz-page">
-    <?php View::partial('page-header', ['header' => $content->getHeader()]); ?>
+    <?php View::partial('layout/page-header', ['header' => $content->getHeader()]); ?>
 
     <?php if (empty($cart['items'])): ?>
         <?php
-        View::partial('empty-state', [
+        View::partial('feedback/empty-state', [
             'icon' => $empty['icon'],
             'title' => $empty['title'],
             'text' => $empty['text'],
@@ -39,7 +45,7 @@ $empty = $content->getEmpty();
 
                 <?php foreach ($cart['items'] as $key => $item): ?>
                     <?php
-                    View::partial('cart-item', [
+                    View::partial('cart/cart-item', [
                         'view' => CartItemPresenter::present($item),
                         'remove' => ['key' => (string) $key, 'label' => $content->getRemoveLabel()],
                     ]);
@@ -60,7 +66,7 @@ $empty = $content->getEmpty();
             <?php $actionsHtml = ob_get_clean(); ?>
 
             <?php
-            View::partial('summary-panel', [
+            View::partial('cart/summary-panel', [
                 'title' => $labels['title'],
                 'rows' => [
                     ['label' => $labels['items_label'], 'value' => (string) count($cart['items'])],

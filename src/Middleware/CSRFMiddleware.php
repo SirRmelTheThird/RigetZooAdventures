@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Middleware;
 
-use Core\CSRF;
-use Core\Middleware;
-use Core\Request;
-use Core\Response;
-use Exceptions\CsrfTokenException;
+use Core\Security\CSRF;
+use Core\Http\Middleware;
+use Core\Http\Request;
+use Core\Http\Response;
+use Exceptions\Http\CsrfTokenException;
 
 final class CSRFMiddleware implements Middleware
 {

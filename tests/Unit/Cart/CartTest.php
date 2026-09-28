@@ -6,7 +6,7 @@ namespace Tests\Unit\Cart;
 
 use Cart\Cart;
 use Enums\ItemType;
-use Exceptions\CartException;
+use Exceptions\Cart\CartException;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\CartFixtures;
 

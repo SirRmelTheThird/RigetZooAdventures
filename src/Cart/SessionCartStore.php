@@ -6,7 +6,7 @@ namespace Cart;
 
 use Core\Constants\SessionKey;
 use Core\Logging\Logger;
-use Core\SessionStore;
+use Core\Session\SessionStore;
 
 final class SessionCartStore implements CartStore
 {

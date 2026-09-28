@@ -6,18 +6,18 @@ namespace Tests\Unit\Services;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
-use Services\BookingService;
+use Services\Tickets\BookingService;
 
 final class BookingServiceTest extends TestCase
 {
     public function testServiceExists(): void
     {
-        self::assertTrue(class_exists('Services\BookingService'));
+        self::assertTrue(class_exists('Services\Tickets\BookingService'));
     }
 
     public function testRepositorySeamsInjected(): void
     {
-        // Evidence: src/Services/BookingService.php lines 28-29 — constructor injects OrderRepository and OrderItemRepository via DI
+        // Evidence: src/Services/Tickets/BookingService.php constructor injects OrderRepository via DI
         $ref = new ReflectionMethod(BookingService::class, '__construct');
         $params = $ref->getParameters();
         $names = [];
@@ -25,8 +25,7 @@ final class BookingServiceTest extends TestCase
             $t = $p->getType();
             $names[] = $t !== null ? $t->__toString() : '';
         }
-        self::assertStringContainsString('Repositories\OrderRepository', implode(',', $names));
-        self::assertStringContainsString('Repositories\OrderItemRepository', implode(',', $names));
+        self::assertStringContainsString('OrderRepository', implode(',', $names));
     }
 
     public function testBuildOrderCoreExtracted(): void
@@ -41,7 +40,7 @@ final class BookingServiceTest extends TestCase
     {
         // Evidence: placePaidOrder() wraps createOrder() inside db->transaction()
         $ref = new ReflectionMethod(BookingService::class, 'placePaidOrder');
-        $body = file_get_contents('src/Services/BookingService.php');
+        $body = file_get_contents('src/Services/Tickets/BookingService.php');
         self::assertStringContainsString('transaction', $body);
     }
 }

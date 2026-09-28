@@ -6,10 +6,10 @@ namespace Repositories\Eloquent\Tickets;
 
 use Enums\TicketCategory;
 use Illuminate\Database\Eloquent\Collection;
-use Exceptions\NotFoundException;
-use Models\Ticket;
+use Exceptions\Http\NotFoundException;
+use Models\Tickets\Ticket;
 use Support\Messages;
-use Repositories\Contracts\TicketRepository;
+use Repositories\Contracts\Tickets\TicketRepository;
 
 final class EloquentTicketRepository implements TicketRepository
 {

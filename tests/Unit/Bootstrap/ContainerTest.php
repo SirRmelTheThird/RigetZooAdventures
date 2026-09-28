@@ -6,8 +6,8 @@ namespace Tests\Unit\Bootstrap;
 
 use Bootstrap\Container;
 use Bootstrap\ContainerException;
-use Core\ErrorHandler;
-use Core\Router;
+use Core\Error\ErrorHandler;
+use Core\Http\Router;
 use Middleware\AuthMiddleware;
 use Middleware\CSRFMiddleware;
 use PHPUnit\Framework\TestCase;

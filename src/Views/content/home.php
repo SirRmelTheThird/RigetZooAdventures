@@ -7,7 +7,10 @@ use Core\Constants\RedirectKey;
 return [
     'hero' => [
         'kicker' => 'Plan your visit',
-        'title' => 'Wild days, Restful nights.',
+        'title' => [
+            'first' => 'Wild days,',
+            'second' => 'Restful nights.',
+        ],
         'lede' => 'Book zoo tickets, safari experiences, and park stays with one clear path from planning to checkout.',
         'primary' => ['label' => 'Book tickets', 'href' => RedirectKey::TICKETS],
         'secondary' => ['label' => 'View stays', 'href' => RedirectKey::ACCOMMODATIONS],

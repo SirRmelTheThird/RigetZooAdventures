@@ -6,9 +6,9 @@ namespace Tests\Unit\Services;
 
 use Enums\ItemType;
 use Illuminate\Database\Eloquent\Collection;
-use Models\OrderItem;
+use Models\Orders\OrderItem;
 use PHPUnit\Framework\TestCase;
-use Services\OrderItemLoader;
+use Services\Orders\OrderItemLoader;
 
 final class OrderItemLoaderTest extends TestCase
 {

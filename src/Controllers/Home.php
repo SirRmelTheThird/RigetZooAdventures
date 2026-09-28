@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Controllers;
 
 use Core\Constants\RedirectKey;
-use Core\Request;
-use Core\Response;
-use Core\Session;
-use Core\ViewRenderer;
-use Services\AuthService;
-use Services\OrderQueryService;
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Session\Session;
+use Core\View\ViewRenderer;
+use Services\Auth\AuthService;
+use Services\Orders\OrderQueryService;
 
 final class Home
 {

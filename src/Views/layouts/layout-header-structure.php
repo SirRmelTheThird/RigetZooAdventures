@@ -1,9 +1,3 @@
-<?php
-/**
- * Layout header structure (AUD-ARCH-004 split)
- * Separated from presentation (nav, session, cart) to allow reuse without full chrome.
- */
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

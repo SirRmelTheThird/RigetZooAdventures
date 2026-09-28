@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use Exceptions\PaymentException;
+use Exceptions\Payment\PaymentException;
 use Payments\PaymentGateway;
 use Payments\PaymentIntentRef;
 use Payments\PaymentIntentState;

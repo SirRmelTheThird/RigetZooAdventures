@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 use Core\View\View;
 
+use Contracts\SiteContentInterface;
+use Contracts\TermsContentInterface;
+
 ?>
     </main>
 
     <?php
-    View::partial('site-footer', [
-        'site' => View::content('site'),
-        'terms' => View::content('terms'),
+    View::partial('layout/site-footer', [
+        'site' => $site = View::content(SiteContentInterface::class),
+        'terms' => View::content(TermsContentInterface::class),
     ]);
 ?>
 

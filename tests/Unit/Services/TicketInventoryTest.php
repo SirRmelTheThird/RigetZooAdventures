@@ -6,16 +6,12 @@ namespace Tests\Unit\Services;
 
 use Enums\TicketCategory;
 use Enums\TicketType;
-use Exceptions\CartException;
-use Exceptions\NotFoundException;
-use Models\Ticket;
+use Exceptions\Cart\CartException;
+use Exceptions\Http\NotFoundException;
+use Models\Tickets\Ticket;
 use PHPUnit\Framework\TestCase;
-use Repositories\TicketRepository;
-use Services\TicketInventory;
-
-// TicketRepository may not be autoloadable in the current PHPUnit bootstrap.
-// Load it explicitly so PHPUnit can generate the mock.
-require_once dirname(__DIR__, 3) . '/src/Repositories/TicketRepository.php';
+use Repositories\Contracts\Tickets\TicketRepository;
+use Services\Tickets\TicketInventory;
 
 final class TicketInventoryTest extends TestCase
 {

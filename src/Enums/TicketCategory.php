@@ -6,6 +6,6 @@ namespace Enums;
 
 enum TicketCategory: string
 {
-    case Adult = 'Adult';
-    case Child = 'Child';
+    case Adult = 'adult';
+    case Child = 'child';
 }

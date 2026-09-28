@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
-use Core\Request;
-use Core\Router;
-use Exceptions\NotFoundException;
+use Core\Http\Request;
+use Core\Http\Router;
+use Exceptions\Http\NotFoundException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\EchoController;

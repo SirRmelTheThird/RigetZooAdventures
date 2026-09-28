@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use PHPUnit\Framework\TestCase;
-use Services\TicketCatalog;
+use Services\Tickets\TicketCatalog;
 
 final class TicketCatalogTest extends TestCase
 {
@@ -16,7 +16,7 @@ final class TicketCatalogTest extends TestCase
 
     public function testNoInlineImportsUsed(): void
     {
-        // Verification: only `use Services\TicketCatalog;` present; no inline `use` inside methods
+        // Verification: only `use Services\Tickets\TicketCatalog;` present; no inline `use` inside methods
         $reflection = new \ReflectionClass(TicketCatalog::class);
         self::assertTrue($reflection->isFinal());
     }

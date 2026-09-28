@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Repositories\Eloquent\Orders;
 
 use Enums\ItemType;
-use Models\OrderItem;
-use Repositories\Contracts\OrderItemRepository;
+use Models\Orders\OrderItem;
+use Repositories\Contracts\Orders\OrderItemRepository;
 
 final class EloquentOrderItemRepository implements OrderItemRepository
 {
     public function createTicketLine(
-        int $orderId,
-        int $ticketId,
+        string $orderId,
+        string $ticketId,
         int $quantity,
         float $price,
         string $startDate,
@@ -29,8 +29,8 @@ final class EloquentOrderItemRepository implements OrderItemRepository
     }
 
     public function createAccommodationLine(
-        int $orderId,
-        int $accommodationId,
+        string $orderId,
+        string $accommodationId,
         float $price,
         string $startDate,
         string $endDate,

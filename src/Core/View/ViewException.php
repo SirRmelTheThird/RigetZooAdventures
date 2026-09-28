@@ -33,4 +33,9 @@ final class ViewException extends RuntimeException
     {
         return new self(sprintf('No "%s" ticket price found for this ticket tier.', $category->value));
     }
+
+    public static function missingContentKey(string $key): self
+    {
+        return new self("Content is missing required key: \"{$key}\".");
+    }
 }

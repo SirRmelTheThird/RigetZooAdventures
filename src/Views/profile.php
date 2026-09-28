@@ -2,12 +2,17 @@
 
 declare(strict_types=1);
 
-use App\Models\ProfileContentInterface;
+use Contracts\ProfileContentInterface;
 use Core\Constants\RedirectKey;
 use Core\CSRF;
 use Core\View\Format;
 use Core\View\OrderPresenter;
 use Core\View\View;
+
+/**
+ * @var \Models\Customer $user
+ * @var \Illuminate\Database\Eloquent\Collection $orders
+ */
 
 $pageTitle = 'Profile';
 require __DIR__ . '/layouts/header.php';
@@ -16,7 +21,6 @@ $content   = View::content(ProfileContentInterface::class);
 $orderCopy = $content->getOrders();
 $account   = $content->getAccount();
 $empty     = $content->getEmpty();
-
 ob_start(); ?>
     <form action="<?= RedirectKey::LOGOUT ?>" method="POST">
         <?= CSRF::field() ?>
@@ -25,7 +29,7 @@ ob_start(); ?>
 <?php $actionsHtml = ob_get_clean(); ?>
 
 <div class="rz-container rz-page">
-    <?php View::partial('page-header', ['header' => $content->getHeader()]); ?>
+    <?php View::partial('layout/page-header', ['header' => $content->getHeader()]); ?>
 
     <div class="rz-checkout">
         <section class="rz-card rz-card--raised rz-reveal" aria-labelledby="orders-title">
@@ -33,7 +37,7 @@ ob_start(); ?>
 
             <?php if ($orders->isEmpty()): ?>
                 <?php
-                View::partial('empty-state', [
+                View::partial('feedback/empty-state', [
                     'icon'  => $empty['icon'],
                     'title' => $empty['title'],
                     'text'  => $empty['text'],
@@ -53,7 +57,7 @@ ob_start(); ?>
                         <tbody>
                             <?php foreach ($orders as $order): ?>
                                 <tr>
-                                    <td><strong>#<?= (int) $order->id ?></strong></td>
+                                    <td><strong>#<?= (int) $order->order_number ?></strong></td>
                                     <td><?= Format::date($order->created_at) ?></td>
                                     <td>
                                         <?php if ($order->items->isEmpty()): ?>
@@ -80,7 +84,7 @@ ob_start(); ?>
         </section>
 
         <?php
-        View::partial('summary-panel', [
+        View::partial('cart/summary-panel', [
             'title' => $account['title'],
             'rows' => [
                 ['label' => 'Name', 'value' => trim($user->first_name . ' ' . $user->last_name)],

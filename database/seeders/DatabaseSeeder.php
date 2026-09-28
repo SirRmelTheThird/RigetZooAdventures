@@ -3,9 +3,10 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
-use Models\Customer;
-use Models\Ticket;
-use Models\Accommodation;
+use Models\Auth\Customer;
+use Models\Tickets\Ticket;
+use Models\Accommodations\Accommodation;
+use Models\Accommodations\AccommodationAvailability;
 
 class DatabaseSeeder
 {
@@ -58,11 +59,88 @@ class DatabaseSeeder
     {
         $jsonPath = __DIR__ . '/accommodations.json';
         $accommodations = json_decode(file_get_contents($jsonPath), true);
+        $availabilityCount = 0;
 
-        foreach ($accommodations as $accommodation) {
-            Accommodation::create(array_merge($accommodation, ["id" => (string) uniqid()]));
+        foreach ($accommodations as $raw) {
+            $windows = $raw['available_windows'];
+            $availableFrom = $raw['available_from'];
+            $availableUntil = $raw['available_until'];
+
+            unset($raw['available_windows'], $raw['available_from'], $raw['available_until']);
+
+            $model = Accommodation::create(array_merge($raw, ['id' => (string) uniqid()]));
+
+            $unavailable = $this->buildUnavailableRanges($windows, $availableFrom, $availableUntil);
+            foreach ($unavailable as $range) {
+                AccommodationAvailability::create([
+                    'id' => (string) uniqid(),
+                    'accommodation_id' => (string) $model->id,
+                    'start_date' => $range['start_date'],
+                    'end_date' => $range['end_date'],
+                    'reason' => $range['reason'],
+                    'is_available' => false,
+                ]);
+                $availabilityCount++;
+            }
         }
 
-        echo "Seeded: accommodations (" . count($accommodations) . " options)\n";
+        echo "Seeded: accommodations (" . count($accommodations) . " options, $availabilityCount unavailable ranges)\n";
+    }
+
+    /**
+     * Convert available windows into unavailable gap ranges.
+     *
+     * Given a sorted set of available windows within an outer boundary,
+     * returns the gaps between and around those windows as unavailable ranges.
+     *
+     * @param array<int, array{start: string, end: string}> $windows
+     * @param string $availableFrom
+     * @param string $availableUntil
+     * @return array<int, array{start_date: string, end_date: string, reason: string}>
+     */
+    private function buildUnavailableRanges(array $windows, string $availableFrom, string $availableUntil): array
+    {
+        if ($windows === []) {
+            return [];
+        }
+
+        usort($windows, fn ($a, $b) => $a['start'] <=> $b['start']);
+
+        $unavailable = [];
+
+        // Gap before the season opens
+        $yearStart = substr($availableFrom, 0, 4) . '-01-01';
+        if ($yearStart < $availableFrom) {
+            $unavailable[] = [
+                'start_date' => $yearStart,
+                'end_date' => $availableFrom,
+                'reason' => 'season',
+            ];
+        }
+
+        // Gaps between consecutive available windows
+        for ($i = 0; $i < count($windows) - 1; $i++) {
+            $gapStart = $windows[$i]['end'];
+            $gapEnd = $windows[$i + 1]['start'];
+            if ($gapStart < $gapEnd) {
+                $unavailable[] = [
+                    'start_date' => $gapStart,
+                    'end_date' => $gapEnd,
+                    'reason' => 'maintenance',
+                ];
+            }
+        }
+
+        // Gap after the season closes
+        $yearEnd = substr($availableUntil, 0, 4) . '-12-31';
+        if ($availableUntil < $yearEnd) {
+            $unavailable[] = [
+                'start_date' => $availableUntil,
+                'end_date' => $yearEnd,
+                'reason' => 'season',
+            ];
+        }
+
+        return $unavailable;
     }
 }

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use Core\Logging\Logger;
-use Exceptions\InvalidWebhookException;
+use Exceptions\Payment\InvalidWebhookException;
 use PHPUnit\Framework\TestCase;
 use Payments\PaymentGateway;
 use Payments\WebhookEvent;
 use Payments\WebhookEventType;
 use Services\Notifications\DiscordNotificationService;
 use Services\Notifications\DiscordEmbedFactory;
-use Services\PaymentWebhookHandler;
+use Services\Checkout\PaymentWebhookHandler;
 use Tests\Support\MemoryLogWriter;
 use Tests\Support\FakeGateway;
 
@@ -24,6 +24,7 @@ final class PaymentServiceTest extends TestCase
         $signature = 'sig';
 
         $event = new WebhookEvent(
+            'evt_1',
             WebhookEventType::PaymentSucceeded->value,
             'pi_123',
             2500,
@@ -37,9 +38,16 @@ final class PaymentServiceTest extends TestCase
             ->willReturn($event);
 
         $logger = new Logger(new MemoryLogWriter());
+        $webhookClient = new \Services\Notifications\DiscordWebhookClient(
+            $logger,
+            new \Services\Notifications\CurlWebhookTransport(),
+            'https://example.invalid/webhook',
+            null,
+        );
+
         $discord = new DiscordNotificationService(
             new DiscordEmbedFactory(),
-            new \Services\Notifications\CurlWebhookTransport(),
+            $webhookClient,
         );
 
         $handler = new PaymentWebhookHandler($gateway, $logger, $discord);
@@ -61,9 +69,16 @@ final class PaymentServiceTest extends TestCase
             ->willThrowException(new InvalidWebhookException('invalid'));
 
         $logger = new Logger(new MemoryLogWriter());
+        $webhookClient = new \Services\Notifications\DiscordWebhookClient(
+            $logger,
+            new \Services\Notifications\CurlWebhookTransport(),
+            'https://example.invalid/webhook',
+            null,
+        );
+
         $discord = new DiscordNotificationService(
             new DiscordEmbedFactory(),
-            new \Services\Notifications\CurlWebhookTransport(),
+            $webhookClient,
         );
 
         $handler = new PaymentWebhookHandler($gateway, $logger, $discord);

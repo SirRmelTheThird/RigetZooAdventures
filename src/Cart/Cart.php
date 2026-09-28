@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Cart;
 
 use Enums\ItemType;
-use Exceptions\CartException;
+use Exceptions\Cart\CartException;
 use Support\Messages;
 
 final class Cart

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Requests;
 
 use Core\Validation\Validator;
-use Exceptions\ValidationException;
+use Exceptions\Validation\ValidationException;
 use PHPUnit\Framework\TestCase;
-use Requests\RemoveCartItemRequest;
+use Requests\Cart\RemoveCartItemRequest;
 
 final class RemoveCartItemRequestTest extends TestCase
 {

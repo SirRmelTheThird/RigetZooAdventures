@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use Core\SessionStore;
+use Core\Session\SessionStore;
 
 final class InMemorySessionStore implements SessionStore
 {

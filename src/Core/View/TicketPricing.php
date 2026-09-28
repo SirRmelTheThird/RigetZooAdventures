@@ -16,9 +16,11 @@ final readonly class TicketPricing
 
     public static function fromTickets(iterable $tickets): self
     {
+        $tickets = iterator_to_array($tickets);
+
         $prices = [];
         foreach ($tickets as $ticket) {
-            $category = TicketCategory::tryFrom((string) $ticket->category);
+        $category = TicketCategory::tryFrom(strtolower(trim((string) $ticket->category)));
             if ($category === null) {
                 continue;
             }

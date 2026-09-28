@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace Tests\Integration;
 use PHPUnit\Framework\TestCase;
-use Services\PaymentWebhookHandler;
+use Services\Checkout\PaymentWebhookHandler;
 
 final class PaymentWebhookTest extends TestCase {
     public function testWebhookHandlerHandlesEvent(): void {

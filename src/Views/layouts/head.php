@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 use Core\View\Format;
 use Core\View\View;
+use Contracts\SiteContentInterface;
 
 View::bind(dirname(__DIR__));
 
-$site = View::content('site');
+$site = View::content(SiteContentInterface::class);
 
-$documentTitle = $site['name'];
+$documentTitle = $site->getName();
 if (isset($pageTitle)) {
-    $documentTitle = $pageTitle . ' | ' . $site['name'];
+    $documentTitle = $pageTitle . ' | ' . $site->getName();
 }
 ?>
 <!DOCTYPE html>
@@ -19,9 +20,9 @@ if (isset($pageTitle)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="<?= Format::e($site['description']) ?>">
+    <meta name="description" content="<?= Format::e($site->getDescription()) ?>">
     <meta name="theme-color" content="#12240f">
-    <link rel="icon" type="image/png" sizes="64x64" href="/assets/images/logo/rza-logo.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/images/logo/rza-logo-shortened.png">
     <title><?= Format::e($documentTitle) ?></title>
     <script>document.documentElement.classList.add('js');</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use PHPUnit\Framework\TestCase;
-use Services\RewardService;
+use Services\Checkout\RewardService;
 
 final class RewardServiceTest extends TestCase
 {

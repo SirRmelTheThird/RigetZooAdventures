@@ -6,13 +6,13 @@ namespace Tests\Unit\Services;
 
 use Cart\Cart;
 use Core\Logging\Logger;
-use Exceptions\CartException;
-use Exceptions\PaymentException;
+use Exceptions\Cart\CartException;
+use Exceptions\Payment\PaymentException;
 use Payments\PaymentIntentRef;
 use Payments\PaymentIntentState;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Services\CheckoutService;
+use Services\Checkout\CheckoutService;
 use Tests\Support\CartFixtures;
 use Tests\Support\FakeGateway;
 use Tests\Support\FakePlacer;
@@ -29,7 +29,7 @@ final class CheckoutServiceTest extends TestCase
 
     private function paid(int $customerId, int $amount): PaymentIntentState
     {
-        return new PaymentIntentState('pi_1', true, $amount, $customerId);
+        return new PaymentIntentState('pi_1', true, $amount, 'gbp', (string) $customerId);
     }
 
     public function testMatchingPaidIntentBooksTheOrderOnce(): void
@@ -39,7 +39,7 @@ final class CheckoutServiceTest extends TestCase
         $cart = $this->ticketCart();
         $gateway->state = $this->paid(9, $cart->totalMinorUnits());
 
-        self::assertSame(42, $this->checkout($gateway, $placer)->complete(9, $cart, 'pi_1'));
+        self::assertSame('a2d92341-24c7-4589-94de-b525bd175cf32', $this->checkout($gateway, $placer)->complete('9', $cart, 'pi_1'));
         self::assertSame(1, $placer->calls);
         self::assertSame([], $gateway->refunded);
     }
@@ -48,10 +48,10 @@ final class CheckoutServiceTest extends TestCase
     {
         $gateway = new FakeGateway();
         $placer = new FakePlacer();
-        $gateway->state = new PaymentIntentState('pi_1', false, 100, 9);
+        $gateway->state = new PaymentIntentState('pi_1', false, 100, 'gbp', '9');
 
         try {
-            $this->checkout($gateway, $placer)->complete(9, $this->ticketCart(), 'pi_1');
+            $this->checkout($gateway, $placer)->complete('9', $this->ticketCart(), 'pi_1');
             self::fail('expected PaymentException');
         } catch (PaymentException) {
             self::assertSame(0, $placer->calls);
@@ -67,7 +67,7 @@ final class CheckoutServiceTest extends TestCase
         $gateway->state = $this->paid(1, $cart->totalMinorUnits());
 
         try {
-            $this->checkout($gateway, $placer)->complete(9, $cart, 'pi_1');
+            $this->checkout($gateway, $placer)->complete('9', $cart, 'pi_1');
             self::fail('expected PaymentException');
         } catch (PaymentException) {
             self::assertSame(0, $placer->calls);
@@ -82,7 +82,7 @@ final class CheckoutServiceTest extends TestCase
         $gateway->state = $this->paid(9, 100);
 
         try {
-            $this->checkout($gateway, $placer)->complete(9, $this->ticketCart(), 'pi_1');
+            $this->checkout($gateway, $placer)->complete('9', $this->ticketCart(), 'pi_1');
             self::fail('expected PaymentException');
         } catch (PaymentException) {
             self::assertSame(0, $placer->calls);
@@ -100,7 +100,7 @@ final class CheckoutServiceTest extends TestCase
         $gateway->state = $this->paid(9, $cart->totalMinorUnits());
 
         try {
-            $this->checkout($gateway, $placer)->complete(9, $cart, 'pi_1');
+            $this->checkout($gateway, $placer)->complete('9', $cart, 'pi_1');
             self::fail('expected PaymentException');
         } catch (PaymentException $e) {
             self::assertSame(['pi_1'], $gateway->refunded);
@@ -118,7 +118,7 @@ final class CheckoutServiceTest extends TestCase
         $gateway->state = $this->paid(9, $cart->totalMinorUnits());
 
         try {
-            $this->checkout($gateway, $placer)->complete(9, $cart, 'pi_1');
+            $this->checkout($gateway, $placer)->complete('9', $cart, 'pi_1');
             self::fail('expected RuntimeException');
         } catch (RuntimeException $e) {
             self::assertSame([], $gateway->refunded, 'infrastructure failures must stay retryable, not refunded');
@@ -132,7 +132,7 @@ final class CheckoutServiceTest extends TestCase
         $gateway->state = $this->paid(9, 1);
 
         try {
-            $this->checkout($gateway, new FakePlacer())->complete(9, $this->ticketCart(), 'pi_1');
+            $this->checkout($gateway, new FakePlacer())->complete('9', $this->ticketCart(), 'pi_1');
             self::fail('expected PaymentException');
         } catch (PaymentException $e) {
             self::assertStringContainsString('contact support', $e->getMessage());
@@ -142,7 +142,7 @@ final class CheckoutServiceTest extends TestCase
     public function testEmptyCartIsRejectedBeforeTouchingTheGateway(): void
     {
         $this->expectException(CartException::class);
-        $this->checkout(new FakeGateway(), new FakePlacer())->begin(9, Cart::empty());
+        $this->checkout(new FakeGateway(), new FakePlacer())->begin('9', Cart::empty());
     }
 
     public function testBeginSendsTheCartTotalInCents(): void
@@ -158,7 +158,7 @@ final class CheckoutServiceTest extends TestCase
             }
         };
 
-        $this->checkout($gateway, new FakePlacer())->begin(9, $this->ticketCart(1, 0));
+        $this->checkout($gateway, new FakePlacer())->begin('9', $this->ticketCart(1, 0));
 
         self::assertSame(1999, $gateway->amount);
     }

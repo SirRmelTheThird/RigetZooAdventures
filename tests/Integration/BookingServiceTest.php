@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace Tests\Integration;
 use PHPUnit\Framework\TestCase;
-use Services\BookingService;
+use Services\Tickets\BookingService;
 
 final class BookingServiceTest extends TestCase {
     public function testPlacePaidOrderExists(): void {

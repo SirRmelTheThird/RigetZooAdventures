@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
-use Core\ViewRenderer;
+use Core\View\ViewRenderer;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
-use Core\ErrorHandler;
+use Core\Error\ErrorHandler;
 use Core\Logging\Logger;
-use Core\Request;
-use Core\ViewRenderer;
-use Exceptions\CartException;
-use Exceptions\CsrfTokenException;
-use Exceptions\NotFoundException;
-use Exceptions\PaymentException;
-use Exceptions\ValidationException;
+use Core\Http\Request;
+use Core\View\ViewRenderer;
+use Exceptions\Cart\CartException;
+use Exceptions\Http\CsrfTokenException;
+use Exceptions\Http\NotFoundException;
+use Exceptions\Payment\PaymentException;
+use Exceptions\Validation\ValidationException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Tests\Support\MemoryLogWriter;

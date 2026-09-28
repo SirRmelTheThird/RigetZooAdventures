@@ -7,7 +7,7 @@ namespace Enums;
 enum OrderStatus: string
 {
     case Pending = 'pending';
-    case Paid = 'paid';
+    case Paid = 'Paid';
     case Cancelled = 'cancelled';
     case Failed = 'failed';
 
