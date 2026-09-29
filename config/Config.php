@@ -6,7 +6,10 @@ namespace Config;
 use Dotenv\Dotenv;
 
 class Config
-{
+{    
+    /**
+     * @var array<string, string>
+    */
     private static $env = [];
     private static $loaded = false;
 
@@ -32,7 +35,7 @@ class Config
         self::$loaded = true;
     }
 
-    public static function get($key, $default = null)
+    public static function get(string $key, ?string $default = null)
     {
         if (!self::$loaded) {
             self::load();

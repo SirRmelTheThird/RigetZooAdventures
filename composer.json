@@ -20,7 +20,7 @@
     },
     "autoload": {
         "psr-4": {
-            "": "src/",
+            "RigetZooAdventures\\": "src/",
             "Config\\": "config/",
             "Database\\Migrations\\": "database/migrations/",
             "Database\\Seeders\\": "database/seeders/",
