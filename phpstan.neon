@@ -1,5 +1,8 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
 parameters:
-    level: 6
+    level: 8
 
     paths:
         - src
@@ -8,4 +11,9 @@ parameters:
     bootstrapFiles:
         - vendor/autoload.php
 
-    tmpDir: .phpstan/cache
+    tmpDir: var/phpstan
+
+    # This project uses standalone Eloquent with Capsule,
+    # not a full Laravel application.
+    disableMigrationScan: true
+    disableSchemaScan: true
