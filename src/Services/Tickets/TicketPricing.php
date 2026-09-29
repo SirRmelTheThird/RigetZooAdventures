@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Core\View;
+namespace Services\Tickets;
 
 use Enums\TicketCategory;
+use Exceptions\Views\ViewException;
 
 final readonly class TicketPricing
 {

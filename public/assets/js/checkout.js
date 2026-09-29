@@ -3,6 +3,7 @@
  * Keys and the failure message arrive as data attributes on #payment-form,
  * so this file contains no server-rendered values.
  */
+/* global Stripe */
 (() => {
     'use strict';
 

@@ -6,7 +6,7 @@
     const REVEAL_MAX_STEPS = 4;
     const CURRENCY_SYMBOL = '£';
     const MONEY_DECIMALS = 2;
-    const FLASH_DURATION_MS = 5000000;
+    const FLASH_DURATION_MS = 3500;
 
     const formatMoney = (amount) => CURRENCY_SYMBOL + amount.toFixed(MONEY_DECIMALS);
 
@@ -104,7 +104,7 @@
             }
             try {
                 return JSON.parse(raw);
-            } catch (_) {
+            } catch {
                 return [];
             }
         }

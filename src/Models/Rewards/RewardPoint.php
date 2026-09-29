@@ -7,6 +7,8 @@ namespace Models\Rewards;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Models\Auth\Customer;
+use Models\Orders\Order;
 
 class RewardPoint extends Model
 {

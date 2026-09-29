@@ -4,20 +4,55 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use Enums\TicketCategory;
+use Enums\TicketType;
+use Exceptions\Http\NotFoundException;
+use Illuminate\Database\Eloquent\Collection;
+use Models\Tickets\Ticket;
 use PHPUnit\Framework\TestCase;
+use Repositories\Contracts\Catalog\CatalogRepository;
 use Services\Tickets\TicketCatalog;
 
 final class TicketCatalogTest extends TestCase
 {
-    public function testServiceExists(): void
+    public function testPriceForReturnsTheCatalogPrice(): void
     {
-        self::assertTrue(class_exists(TicketCatalog::class));
+        $ticket = new Ticket();
+        $ticket->setRawAttributes(['price' => '19.99']);
+        $catalog = new class ($ticket) implements CatalogRepository {
+            public function __construct(private readonly Ticket $ticket)
+            {
+            }
+
+            public function priceFor(TicketType $type, TicketCategory $category): ?Ticket
+            {
+                return $this->ticket;
+            }
+
+            public function forType(TicketType $type): Collection
+            {
+                return new Collection([$this->ticket]);
+            }
+        };
+
+        self::assertSame(19.99, (new TicketCatalog($catalog))->priceFor(TicketType::Standard, TicketCategory::Adult));
     }
 
-    public function testNoInlineImportsUsed(): void
+    public function testPriceForRaisesNotFoundWhenCatalogHasNoTicket(): void
     {
-        // Verification: only `use Services\Tickets\TicketCatalog;` present; no inline `use` inside methods
-        $reflection = new \ReflectionClass(TicketCatalog::class);
-        self::assertTrue($reflection->isFinal());
+        $catalog = new class implements CatalogRepository {
+            public function priceFor(TicketType $type, TicketCategory $category): ?Ticket
+            {
+                return null;
+            }
+
+            public function forType(TicketType $type): Collection
+            {
+                return new Collection();
+            }
+        };
+
+        $this->expectException(NotFoundException::class);
+        (new TicketCatalog($catalog))->priceFor(TicketType::Standard, TicketCategory::Adult);
     }
 }

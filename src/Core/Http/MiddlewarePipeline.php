@@ -24,8 +24,43 @@ final class MiddlewarePipeline
         ]);
     }
 
-    public function getOrdered(): array
+    /**
+     * @param array<string>|null $middleware
+     * @return array<string>
+     */
+    public function getOrdered(?array $middleware = null): array
     {
-        return $this->middleware;
+        if ($middleware === null) {
+            return $this->middleware;
+        }
+
+        $priority = [];
+        foreach ($this->middleware as $index => $registeredMiddleware) {
+            $priority[$this->shortName($registeredMiddleware)] = $index;
+        }
+
+        $indexed = [];
+        foreach ($middleware as $index => $middlewareName) {
+            $indexed[] = [
+                'name' => $middlewareName,
+                'priority' => $priority[$this->shortName($middlewareName)] ?? PHP_INT_MAX,
+                'index' => $index,
+            ];
+        }
+
+        usort(
+            $indexed,
+            static fn (array $left, array $right): int =>
+                ($left['priority'] <=> $right['priority']) ?: ($left['index'] <=> $right['index'])
+        );
+
+        return array_column($indexed, 'name');
+    }
+
+    private function shortName(string $middleware): string
+    {
+        $separator = strrpos($middleware, '\\');
+
+        return $separator === false ? $middleware : substr($middleware, $separator + 1);
     }
 }

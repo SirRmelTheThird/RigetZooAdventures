@@ -10,7 +10,7 @@ const CSRF = 'CSRFMiddleware';
 return static function (Router $router): void {
     $router
       ->get('/', 'Home@index')
-      ->get('/profile', 'Home@profile', [AUTH])
+      ->get('/profile', 'Profile@profile', [AUTH])
       ->get('/attractions', 'Home@attractions')
       ->get('/educational', 'Home@educational')
 

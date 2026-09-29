@@ -6,11 +6,8 @@ namespace Services\Tickets;
 
 use Enums\TicketCategory;
 use Enums\TicketType;
-use Exceptions\CartException;
-use Exceptions\Http\NotFoundException;
 use Models\Tickets\Ticket;
 use Repositories\Contracts\Tickets\TicketRepository;
-use Support\Messages;
 
 final class TicketInventory
 {
@@ -20,6 +17,9 @@ final class TicketInventory
 
     public function reserve(TicketType $type, TicketCategory $category, int $quantity): Ticket
     {
-        return $this->tickets->reserve($type->value, $category, $quantity);
+        $ticket = $this->tickets->lockForReservation($type->value, $category);
+        $this->tickets->decrementAvailableQuantity($ticket, $quantity);
+
+        return $ticket;
     }
 }

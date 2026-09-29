@@ -8,6 +8,8 @@ use Enums\ItemType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Models\Accommodations\Accommodation;
+use Models\Tickets\Ticket;
 
 class OrderItem extends Model
 {

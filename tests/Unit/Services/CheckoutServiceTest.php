@@ -75,6 +75,29 @@ final class CheckoutServiceTest extends TestCase
         }
     }
 
+    public function testWrongCurrencyPaymentIsRefundedAndNeverBooked(): void
+    {
+        $gateway = new FakeGateway();
+        $placer = new FakePlacer();
+        $cart = $this->ticketCart();
+        $gateway->state = new PaymentIntentState(
+            'pi_1',
+            true,
+            $cart->totalMinorUnits(),
+            'eur',
+            '9',
+        );
+
+        try {
+            $this->checkout($gateway, $placer)->complete('9', $cart, 'pi_1');
+            self::fail('expected PaymentException');
+        } catch (PaymentException) {
+            self::assertSame(0, $placer->calls);
+            self::assertSame(['pi_1'], $gateway->refunded);
+            self::assertSame(['refund:pi_1'], $gateway->refundKeys);
+        }
+    }
+
     public function testCartChangedAfterPayingIsRefundedNotBooked(): void
     {
         $gateway = new FakeGateway();

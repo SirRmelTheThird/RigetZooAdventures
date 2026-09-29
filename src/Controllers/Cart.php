@@ -7,7 +7,7 @@ namespace Controllers;
 use Core\Constants\RedirectKey;
 use Core\Http\Request;
 use Core\Http\Response;
-use Core\Session\Session;
+use Core\Session\SessionStore;
 use Core\View\ViewRenderer;
 use Requests\Cart\RemoveCartItemRequest;
 use Services\Checkout\CartService;
@@ -21,6 +21,7 @@ final class Cart
         private readonly CartService $carts,
         private readonly RewardService $rewards,
         private readonly RemoveCartItemRequest $removeRequest,
+        private readonly SessionStore $session,
     ) {
     }
 
@@ -50,7 +51,7 @@ final class Cart
 
     private function redirectToCartWithSuccess(string $message): Response
     {
-        Session::flashSuccess($message);
+        $this->session->flashSuccess($message);
 
         return Response::redirect(RedirectKey::CART);
     }

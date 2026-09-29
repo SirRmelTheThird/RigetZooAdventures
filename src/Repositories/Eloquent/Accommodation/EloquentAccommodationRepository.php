@@ -32,10 +32,11 @@ final class EloquentAccommodationRepository implements AccommodationRepository
         return $db->table('accommodation_availabilities')
             ->where('accommodation_id', $accommodationId)
             ->where('is_available', false)
-            ->get(['start_date', 'end_date'])
+            ->get(['start_date', 'end_date', 'reason'])
             ->map(fn ($r) => [
                 'start_date' => (string) $r->start_date,
                 'end_date' => (string) $r->end_date,
+                'reason' => (string) $r->reason,
             ])
             ->toArray();
     }

@@ -8,6 +8,7 @@ use Bootstrap\Container;
 use Bootstrap\ContainerException;
 use Core\Error\ErrorHandler;
 use Core\Http\Router;
+use Illuminate\Database\ConnectionInterface;
 use Middleware\AuthMiddleware;
 use Middleware\CSRFMiddleware;
 use PHPUnit\Framework\TestCase;
@@ -43,6 +44,14 @@ final class ContainerTest extends TestCase
         $router = $this->container->router();
 
         self::assertInstanceOf(Router::class, $router);
+    }
+
+    public function testContainerAcceptsAnExplicitDatabaseConnection(): void
+    {
+        $connection = $this->createStub(ConnectionInterface::class);
+        $container = new Container(dirname(__DIR__, 3), $connection);
+
+        self::assertSame($connection, $container->databaseConnection());
     }
 
     public function testErrorHandlerReturnsConfiguredErrorHandler(): void

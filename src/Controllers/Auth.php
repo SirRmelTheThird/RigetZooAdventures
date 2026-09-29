@@ -7,7 +7,7 @@ namespace Controllers;
 use Core\Constants\RedirectKey;
 use Core\Http\Request;
 use Core\Http\Response;
-use Core\Session\Session;
+use Core\Session\SessionStore;
 use Core\View\ViewRenderer;
 use Requests\Auth\LoginRequest;
 use Requests\Auth\SignupRequest;
@@ -21,6 +21,7 @@ final class Auth
         private readonly AuthService $auth,
         private readonly LoginRequest $loginRequest,
         private readonly SignupRequest $signupRequest,
+        private readonly SessionStore $session,
     ) {
     }
 
@@ -33,8 +34,8 @@ final class Auth
     {
         $customer = $this->auth->authenticate($this->loginRequest->parse($request->body()));
 
-        Session::signIn((string) $customer->id, (string) $customer->username, (string) $customer->first_name, (string) $customer->email);
-        Session::flashSuccess(Messages::LOGGED_IN);
+        $this->session->signIn((string) $customer->id, (string) $customer->username, (string) $customer->first_name, (string) $customer->email);
+        $this->session->flashSuccess(Messages::LOGGED_IN);
         return Response::redirect(RedirectKey::HOME);
     }
 
@@ -46,14 +47,14 @@ final class Auth
     public function signup(Request $request): Response
     {
         $this->auth->register($this->signupRequest->parse($request->body()));
-        Session::flashSuccess(Messages::ACCOUNT_CREATED);
+        $this->session->flashSuccess(Messages::ACCOUNT_CREATED);
         return Response::redirect(RedirectKey::LOGIN);
     }
 
     public function logout(Request $request): Response
     {
-        Session::invalidate();
-        Session::flashSuccess(Messages::LOGGED_OUT);
+        $this->session->invalidate();
+        $this->session->flashSuccess(Messages::LOGGED_OUT);
         return Response::redirect(RedirectKey::HOME);
     }
 }

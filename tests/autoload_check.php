@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+$_SERVER['REQUEST_METHOD'] ??= 'GET';
+$_SERVER['REQUEST_URI'] ??= '/';
+
 require __DIR__ . '/bootstrap.php';
 
 $root = dirname(__DIR__) . '/src';
@@ -13,7 +16,7 @@ foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root)) as
         continue;
     }
 
-    $relative = substr($file->getPathname(), strlen($root) + 1, -4);
+    $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1, -4));
 
     if (str_starts_with($relative, 'Views/')) {
         continue;

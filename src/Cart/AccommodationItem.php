@@ -21,6 +21,7 @@ final class AccommodationItem implements CartItem
     ) {
     }
 
+    /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
         InvalidCartPayloadException::unlessHasKeys($data, self::REQUIRED_KEYS);
@@ -46,11 +47,12 @@ final class AccommodationItem implements CartItem
         return ItemType::Accommodation;
     }
 
-    public function total(): float
+    public function total(): int
     {
-        return round($this->nights * $this->pricePerNight, 2);
+        return (int) round($this->nights * $this->pricePerNight * 100);
     }
 
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
         return [

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Core\View;
+namespace Exceptions\Views;
 
 use Enums\TicketCategory;
 use RuntimeException;

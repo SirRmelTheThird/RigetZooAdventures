@@ -5,22 +5,27 @@ declare(strict_types=1);
 namespace Services\Auth;
 
 use Core\Logging\Logger;
+use Core\Session\SessionStore;
 use DTOs\Auth\LoginCredentials;
 use DTOs\Auth\Registration;
 use Exceptions\Auth\AuthException;
 use Exceptions\Validation\ValidationException;
 use Models\Auth\Customer;
+use Repositories\Contracts\Auth\CustomerRepository;
 use Support\Messages;
 
 final class AuthService
 {
-    public function __construct(private readonly Logger $logger)
-    {
+    public function __construct(
+        private readonly Logger $logger,
+        private readonly SessionStore $session,
+        private readonly CustomerRepository $customers,
+    ) {
     }
 
     public function authenticate(LoginCredentials $credentials): Customer
     {
-        $customer = Customer::where('username', $credentials->username)->first();
+        $customer = $this->customers->findByUsername($credentials->username);
 
         if ($customer === null || !password_verify($credentials->password, $customer->password)) {
             $this->logger->warning('Failed login', ['username' => $credentials->username]);
@@ -37,11 +42,11 @@ final class AuthService
     {
         $errors = [];
 
-        if (Customer::where('username', $registration->username)->exists()) {
+        if ($this->customers->usernameExists($registration->username)) {
             $errors['username'] = Messages::USERNAME_TAKEN;
         }
 
-        if (Customer::where('email', $registration->email)->exists()) {
+        if ($this->customers->emailExists($registration->email)) {
             $errors['email'] = Messages::EMAIL_TAKEN;
         }
 
@@ -49,7 +54,7 @@ final class AuthService
             throw new ValidationException($errors);
         }
 
-        $customer = Customer::create([
+        $customer = $this->customers->create([
             'first_name' => $registration->firstName,
             'last_name' => $registration->lastName,
             'username' => $registration->username,
@@ -64,11 +69,11 @@ final class AuthService
 
     public function findAuthenticatedCustomer(string $customerId): ?Customer
     {
-        return Customer::with('rewardPoints')->find($customerId);
+        return $this->customers->findWithRewardPoints($customerId);
     }
 
     public function invalidateSession(): void
     {
-        \Core\Session::invalidate();
+        $this->session->invalidate();
     }
 }

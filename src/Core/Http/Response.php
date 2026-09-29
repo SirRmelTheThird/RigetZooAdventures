@@ -18,22 +18,22 @@ final class Response
 
     public static function html(string $body, HttpStatus $status = HttpStatus::Ok): self
     {
-        return new self($status, ['Content-Type' => self::CONTENT_TYPE_HTML], $body);
+        return new self($status, self::withSecurityHeaders(['Content-Type' => self::CONTENT_TYPE_HTML]), $body);
     }
 
     public static function json(array $data, HttpStatus $status = HttpStatus::Ok): self
     {
-        return new self($status, ['Content-Type' => self::CONTENT_TYPE_JSON], json_encode($data, JSON_THROW_ON_ERROR));
+        return new self($status, self::withSecurityHeaders(['Content-Type' => self::CONTENT_TYPE_JSON]), json_encode($data, JSON_THROW_ON_ERROR));
     }
 
     public static function redirect(string $location): self
     {
-        return new self(HttpStatus::Found, ['Location' => $location], '');
+        return new self(HttpStatus::Found, self::withSecurityHeaders(['Location' => $location]), '');
     }
 
     public static function empty(HttpStatus $status): self
     {
-        return new self($status, [], '');
+        return new self($status, self::withSecurityHeaders(), '');
     }
 
     public function status(): HttpStatus
@@ -60,5 +60,15 @@ final class Response
         }
 
         echo $this->body;
+    }
+
+    /** @param array<string, string> $headers @return array<string, string> */
+    private static function withSecurityHeaders(array $headers = []): array
+    {
+        return array_merge([
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        ], $headers);
     }
 }

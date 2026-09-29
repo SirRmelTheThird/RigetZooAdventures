@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Core\Security;
 
 use Core\Constants\SessionKey;
+use Core\Session\Session;
 
 final class CSRF
 {

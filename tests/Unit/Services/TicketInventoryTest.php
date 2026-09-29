@@ -15,33 +15,34 @@ use Services\Tickets\TicketInventory;
 
 final class TicketInventoryTest extends TestCase
 {
-    public function testReserveDelegatesToRepository(): void
+    public function testReserveLocksTicketAndDecrementsStock(): void
     {
         $repository = $this->createMock(TicketRepository::class);
-        $ticket = $this->createMock(Ticket::class);
+        $ticket = $this->createStub(Ticket::class);
 
         $repository
             ->expects(self::once())
-            ->method('reserve')
-            ->with(
-                TicketType::Standard->value,
-                TicketCategory::Adult,
-                3,
-            )
+            ->method('lockForReservation')
+            ->with(TicketType::Standard->value, TicketCategory::Adult)
             ->willReturn($ticket);
+
+        $repository
+            ->expects(self::once())
+            ->method('decrementAvailableQuantity')
+            ->with($ticket, 3);
 
         $inventory = new TicketInventory($repository);
 
         self::assertSame($ticket, $inventory->reserve(TicketType::Standard, TicketCategory::Adult, 3));
     }
 
-    public function testReservePropagatesNotFoundException(): void
+    public function testReservePropagatesNotFoundExceptionFromLock(): void
     {
         $repository = $this->createMock(TicketRepository::class);
 
         $repository
             ->expects(self::once())
-            ->method('reserve')
+            ->method('lockForReservation')
             ->willThrowException(new NotFoundException('ticket not found'));
 
         $inventory = new TicketInventory($repository);
@@ -50,13 +51,19 @@ final class TicketInventoryTest extends TestCase
         $inventory->reserve(TicketType::Standard, TicketCategory::Adult, 1);
     }
 
-    public function testReservePropagatesCartException(): void
+    public function testReservePropagatesCartExceptionWhenSoldOut(): void
     {
         $repository = $this->createMock(TicketRepository::class);
+        $ticket = $this->createStub(Ticket::class);
 
         $repository
             ->expects(self::once())
-            ->method('reserve')
+            ->method('lockForReservation')
+            ->willReturn($ticket);
+
+        $repository
+            ->expects(self::once())
+            ->method('decrementAvailableQuantity')
             ->willThrowException(new CartException('sold out'));
 
         $inventory = new TicketInventory($repository);

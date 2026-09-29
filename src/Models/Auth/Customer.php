@@ -7,6 +7,8 @@ namespace Models\Auth;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Models\Orders\Order;
+use Models\Rewards\RewardPoint;
 
 class Customer extends Model
 {

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Core\View\Format;
-use Core\View\TicketPricing;
+use Services\Tickets\TicketPricing;
 use Core\View\View;
 
 /**

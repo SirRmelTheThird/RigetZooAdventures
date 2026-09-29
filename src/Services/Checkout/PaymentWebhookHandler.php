@@ -9,16 +9,16 @@ use Exceptions\Payment\InvalidWebhookException;
 use Payments\PaymentGateway;
 use Payments\WebhookEvent;
 use Payments\WebhookEventType;
+use Repositories\Contracts\Payments\WebhookEventRepository;
 use Services\Notifications\DiscordNotificationService;
 
 final class PaymentWebhookHandler
 {
-    private array $processed = [];
-
     public function __construct(
         private readonly PaymentGateway $gateway,
         private readonly Logger $logger,
         private readonly DiscordNotificationService $discord,
+        private readonly WebhookEventRepository $processedEvents,
     ) {
     }
 
@@ -40,15 +40,13 @@ final class PaymentWebhookHandler
             return;
         }
 
-        $key = $event->intentId ?? md5($payload);
+        $key = $event->eventId !== '' ? $event->eventId : md5($payload);
 
-        if (isset($this->processed[$key])) {
+        if (!$this->processedEvents->markProcessed($key)) {
             $this->logger->info('Webhook replay ignored', ['key' => $key]);
 
             return;
         }
-
-        $this->processed[$key] = true;
 
         match ($type) {
             WebhookEventType::PaymentSucceeded => $this->handlePaymentSucceeded($event),

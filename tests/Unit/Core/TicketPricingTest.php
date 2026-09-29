@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
-use Core\View\TicketPricing;
-use Core\View\ViewException;
+use Services\Tickets\TicketPricing;
+use Exceptions\Views\ViewException;
 use PHPUnit\Framework\TestCase;
 
 final class TicketPricingTest extends TestCase

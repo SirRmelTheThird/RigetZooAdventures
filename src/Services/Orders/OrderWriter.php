@@ -9,7 +9,7 @@ use Cart\Cart;
 use Cart\TicketItem;
 use Enums\TicketCategory;
 use Enums\OrderStatus;
-use Exceptions\CartException;
+use Exceptions\Cart\CartException;
 use Models\Orders\Order;
 use Repositories\Contracts\Orders\OrderItemRepository;
 use Repositories\Contracts\Orders\OrderRepository;

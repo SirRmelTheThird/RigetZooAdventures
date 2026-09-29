@@ -6,6 +6,8 @@ namespace Tests\Unit\Core;
 
 use Core\Http\Request;
 use Core\Http\Router;
+use Core\Http\Middleware;
+use Core\Http\Response;
 use Exceptions\Http\NotFoundException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -70,5 +72,51 @@ final class RouterTest extends TestCase
 
         $this->expectException(LogicException::class);
         $router->dispatch(new Request('GET', '/p'));
+    }
+
+    public function testConfiguredMiddlewareRunsInPipelineOrder(): void
+    {
+        $calls = [];
+        $middleware = [
+            'AuthMiddleware' => new class ($calls) implements Middleware {
+                public function __construct(private array &$calls)
+                {
+                }
+
+                public function handle(Request $request): ?Response
+                {
+                    $this->calls[] = 'auth';
+
+                    return null;
+                }
+            },
+            'CSRFMiddleware' => new class ($calls) implements Middleware {
+                public function __construct(private array &$calls)
+                {
+                }
+
+                public function handle(Request $request): ?Response
+                {
+                    $this->calls[] = 'csrf';
+
+                    return null;
+                }
+            },
+        ];
+        $resolver = static function (string $class) use ($middleware): object {
+            return match ($class) {
+                'Controllers\\Echo' => new EchoController(),
+                'Middleware\\AuthMiddleware' => $middleware['AuthMiddleware'],
+                'Middleware\\CSRFMiddleware' => $middleware['CSRFMiddleware'],
+                default => throw new LogicException("unbound {$class}"),
+            };
+        };
+
+        $router = Router::withResolver($resolver)
+            ->post('/p', 'Echo@hello', ['CSRFMiddleware', 'AuthMiddleware']);
+
+        $router->dispatch(new Request('POST', '/p'));
+
+        self::assertSame(['auth', 'csrf'], $calls);
     }
 }

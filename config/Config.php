@@ -45,4 +45,17 @@ class Config
     {
         return self::get('APP_DEBUG', 'false') === 'true';
     }
+
+    public static function shouldDisplayErrors(): bool
+    {
+        $debug = self::get('APP_DEBUG');
+
+        if ($debug !== null) {
+            return filter_var($debug, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        }
+
+        $environment = strtolower((string) self::get('APP_ENV', 'production'));
+
+        return in_array($environment, ['local', 'development', 'test'], true);
+    }
 }

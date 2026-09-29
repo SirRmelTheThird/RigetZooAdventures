@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Contracts\TicketsContentInterface;
-use Core\View\TicketPricing;
+use Services\Tickets\TicketPricing;
 use Core\View\View;
 
 /**

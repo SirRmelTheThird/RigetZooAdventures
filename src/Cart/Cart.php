@@ -10,8 +10,7 @@ use Support\Messages;
 
 final class Cart
 {
-    private const MINOR_UNITS_PER_MAJOR = 100;
-
+    /** @param array<string, CartItem> $items */
     private function __construct(private readonly array $items)
     {
     }
@@ -21,6 +20,7 @@ final class Cart
         return new self([]);
     }
 
+    /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
         InvalidCartPayloadException::unlessHasKeys($data, ['items']);
@@ -65,32 +65,34 @@ final class Cart
         return $this->items === [];
     }
 
+    /** @return list<CartItem> */
     public function items(): array
     {
         return array_values($this->items);
     }
 
-    public function total(): float
+    public function total(): int
     {
-        $sum = 0.0;
+        $sum = 0;
 
         foreach ($this->items as $item) {
             $sum += $item->total();
         }
 
-        return round($sum, 2);
+        return $sum;
     }
 
     public function totalMinorUnits(): int
     {
-        return (int) round($this->total() * self::MINOR_UNITS_PER_MAJOR);
+        return $this->total();
     }
 
+    /** @return array{items: array<string, array<string, mixed>>, total: int} */
     public function toArray(): array
     {
         return [
             'items' => array_map(static fn (CartItem $item): array => $item->toArray(), $this->items),
-            'total' => $this->total(),
+            'total' => $this->totalMinorUnits(),
         ];
     }
 

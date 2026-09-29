@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Core\View;
 
 use Factories\ContentFactory;
+use Exceptions\Views\ViewException;
 
 final class View
 {

@@ -11,6 +11,7 @@ final class CartItemPresenter
     private const TICKET_TITLE_SUFFIX = ' tickets';
 
 
+    /** @param array<string, mixed> $item */
     public static function present(array $item): CartItemView
     {
         if ($item['type'] === self::TYPE_TICKET) {
@@ -20,6 +21,7 @@ final class CartItemPresenter
         return self::stay($item);
     }
 
+    /** @param array<string, mixed> $item */
     private static function ticket(array $item): CartItemView
     {
         $details = [self::detail('Date', (string) $item['date'])];
@@ -38,6 +40,7 @@ final class CartItemPresenter
         );
     }
 
+    /** @param array<string, mixed> $item */
     private static function stay(array $item): CartItemView
     {
         $nights = Format::count((int) $item['nights'], 'night');
@@ -54,6 +57,7 @@ final class CartItemPresenter
         );
     }
 
+    /** @return array{label: string, value: string} */
     private static function detail(string $label, string $value): array
     {
         return ['label' => $label, 'value' => $value];

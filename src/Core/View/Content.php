@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\View;
 
+use Exceptions\Views\ViewException;
+
 final class Content
 {
     public function __construct(private readonly array $data) {}

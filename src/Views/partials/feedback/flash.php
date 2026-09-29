@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use Core\Constants\SessionKey;
-use Core\Session;
+use Core\Session\Session;
 use Core\View\View;
 
-$success = Session::getFlash(SessionKey::SUCCESS);
-$error = Session::getFlash(SessionKey::ERROR);
-$errors = Session::getFlash(SessionKey::VALIDATION_ERRORS);
+$flash = Session::get(SessionKey::FLASH) ?? [];
+$success = $flash[SessionKey::SUCCESS] ?? null;
+$error = $flash[SessionKey::ERROR] ?? null;
+$errors = $flash[SessionKey::VALIDATION_ERRORS] ?? null;
 
 if (!$success && !$error && !$errors) {
     return;

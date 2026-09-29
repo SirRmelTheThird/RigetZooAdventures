@@ -7,6 +7,7 @@ namespace Services\Tickets;
 use Cart\Cart;
 use Core\Logging\Logger;
 use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Models\Orders\Order;
 use Repositories\Contracts\Orders\OrderRepository;
 use Services\Checkout\RewardService;
@@ -32,7 +33,22 @@ final class BookingService implements OrderPlacer
             return (string) $existingOrder->id;
         }
 
-        return $this->db->transaction(fn (): string => $this->createOrder($customerId, $cart, $paymentIntentId));
+        try {
+            return $this->db->transaction(fn (): string => $this->createOrder($customerId, $cart, $paymentIntentId));
+        } catch (UniqueConstraintViolationException $e) {
+            $this->logger->info('Duplicate paid order detected, returning existing order', [
+                'payment_intent_id' => $paymentIntentId,
+                'customer_id' => $customerId,
+            ]);
+
+            $existingOrder = $this->orders->findByStripePaymentId($paymentIntentId);
+
+            if ($existingOrder !== null) {
+                return (string) $existingOrder->id;
+            }
+
+            throw $e;
+        }
     }
 
     private function createOrder(string $customerId, Cart $cart, string $paymentIntentId): string

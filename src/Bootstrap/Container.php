@@ -13,6 +13,7 @@ use Controllers\Auth;
 use Controllers\Cart as CartController;
 use Controllers\Home;
 use Controllers\Payment;
+use Controllers\Profile;
 use Controllers\Ticket;
 use Core\Error\ErrorHandler;
 use Core\Session\PhpSessionStore;
@@ -24,6 +25,7 @@ use Core\Session\SessionStore;
 use Core\Logging\FileLogWriter;
 use Core\Logging\Logger;
 use Core\Http\Router;
+use Core\Http\MiddlewarePipeline;
 use Core\Validation\Validator;
 use Core\View\ViewRenderer;
 use Exceptions\System\MissingEnvVariableException;
@@ -40,12 +42,18 @@ use Requests\Auth\LoginRequest;
 use Requests\Cart\RemoveCartItemRequest;
 use Requests\Auth\SignupRequest;
 use Repositories\Contracts\Accommodation\AccommodationRepository;
+use Repositories\Contracts\Auth\CustomerRepository;
 use Repositories\Contracts\Catalog\CatalogRepository;
+use Repositories\Contracts\Payments\WebhookEventRepository;
+use Repositories\Contracts\Rewards\RewardPointRepository;
 use Repositories\Eloquent\Accommodation\EloquentAccommodationRepository;
+use Repositories\Eloquent\Auth\EloquentCustomerRepository;
 use Repositories\Eloquent\Catalog\EloquentCatalogRepository;
 use Repositories\Eloquent\Orders\EloquentOrderItemRepository;
 use Repositories\Eloquent\Orders\EloquentOrderQueryRepository;
 use Repositories\Eloquent\Orders\EloquentOrderRepository;
+use Repositories\Eloquent\Payments\EloquentWebhookEventRepository;
+use Repositories\Eloquent\Rewards\EloquentRewardPointRepository;
 use Repositories\Eloquent\Tickets\EloquentTicketRepository;
 use Repositories\Contracts\Orders\OrderItemRepository;
 use Repositories\Contracts\Orders\OrderQueryRepository;
@@ -75,45 +83,60 @@ final class Container
     /** @var array<string, object> */
     private array $shared = [];
 
-    public function __construct(private readonly string $basePath)
+    /** @var array<string, Closure> */
+    private array $factories = [];
+
+    public function __construct(
+        private readonly string $basePath,
+        private readonly ?ConnectionInterface $database = null,
+    )
     {
+    }
+
+    public function databaseConnection(): ?ConnectionInterface
+    {
+        return $this->database;
     }
 
     public function make(string $class): object
     {
-        $factories = [
+        if ($this->factories === []) {
+            $this->factories = [
             Home::class => fn (): Home => new Home(
                 $this->views(),
-                $this->orderQueries(),
-                $this->auth()
+                $this->phpSessionStore()
             ),
 
             Auth::class => fn (): Auth => new Auth(
                 $this->views(),
                 $this->auth(),
                 new LoginRequest($this->validator()),
-                new SignupRequest($this->validator())
+                new SignupRequest($this->validator()),
+                $this->phpSessionStore()
             ),
 
             CartController::class => fn (): CartController => new CartController(
                 $this->views(),
                 $this->carts(),
                 $this->rewards(),
-                new RemoveCartItemRequest($this->validator())
+                new RemoveCartItemRequest($this->validator()),
+                $this->phpSessionStore()
             ),
 
             Ticket::class => fn (): Ticket => new Ticket(
                 $this->views(),
                 $this->catalog(),
                 $this->carts(),
-                new BookTicketRequest($this->validator())
+                new BookTicketRequest($this->validator()),
+                $this->phpSessionStore()
             ),
 
             Accommodation::class => fn (): Accommodation => new Accommodation(
                 $this->views(),
                 $this->accommodations(),
                 $this->carts(),
-                new AddAccommodationToCartRequest($this->validator())
+                new AddAccommodationToCartRequest($this->validator()),
+                $this->phpSessionStore()
             ),
 
             Payment::class => fn (): Payment => new Payment(
@@ -121,23 +144,33 @@ final class Container
                 $this->carts(),
                 $this->checkout(),
                 $this->webhooks(),
-                $this->stripeSettings()
+                $this->stripeSettings(),
+                $this->phpSessionStore()
+            ),
+
+            Profile::class => fn (): Profile => new Profile(
+                $this->views(),
+                $this->orderQueries(),
+                $this->auth(),
+                $this->phpSessionStore()
             ),
 
             AuthMiddleware::class => fn (): AuthMiddleware => new AuthMiddleware(),
             CSRFMiddleware::class => fn (): CSRFMiddleware => new CSRFMiddleware(),
-        ];
+            MiddlewarePipeline::class => fn (): MiddlewarePipeline => MiddlewarePipeline::default(),
+            ];
+        }
 
-        if (!array_key_exists($class, $factories)) {
+        if (!array_key_exists($class, $this->factories)) {
             throw new ContainerException("Nothing is registered for {$class}");
         }
 
-        return $factories[$class]();
+        return $this->factories[$class]();
     }
 
     public function router(): Router
     {
-        return Router::withResolver($this->make(...));
+        return Router::withResolver($this->make(...), $this->make(MiddlewarePipeline::class));
     }
 
     public function errorHandler(): ErrorHandler
@@ -180,6 +213,10 @@ final class Container
 
     private function db(): ConnectionInterface
     {
+        if ($this->database !== null) {
+            return $this->database;
+        }
+
         return Capsule::connection();
     }
 
@@ -271,7 +308,7 @@ final class Container
     {
         return $this->once(
             RewardService::class,
-            fn (): RewardService => new RewardService()
+            fn (): RewardService => new RewardService($this->rewardPointRepository())
         );
     }
 
@@ -311,8 +348,26 @@ final class Container
         return $this->once(
             AuthService::class,
             fn (): AuthService => new AuthService(
-                $this->logger()
+                $this->logger(),
+                $this->phpSessionStore(),
+                $this->customerRepository()
             )
+        );
+    }
+
+    private function customerRepository(): CustomerRepository
+    {
+        return $this->once(
+            CustomerRepository::class,
+            fn (): CustomerRepository => new EloquentCustomerRepository()
+        );
+    }
+
+    private function rewardPointRepository(): RewardPointRepository
+    {
+        return $this->once(
+            RewardPointRepository::class,
+            fn (): RewardPointRepository => new EloquentRewardPointRepository()
         );
     }
 
@@ -413,8 +468,17 @@ final class Container
             fn (): PaymentWebhookHandler => new PaymentWebhookHandler(
                 $this->gateway(),
                 $this->logger(),
-                $this->discordNotificationService()
+                $this->discordNotificationService(),
+                $this->webhookEventRepository()
             )
+        );
+    }
+
+    private function webhookEventRepository(): WebhookEventRepository
+    {
+        return $this->once(
+            WebhookEventRepository::class,
+            fn (): WebhookEventRepository => new EloquentWebhookEventRepository()
         );
     }
 

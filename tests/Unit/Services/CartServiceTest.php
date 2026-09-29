@@ -55,11 +55,11 @@ final class CartServiceTest extends TestCase
 
     private function makeService(CartStore $store): CartService
     {
-        $catalogRepo = $this->createMock(\Repositories\Contracts\Catalog\CatalogRepository::class);
+        $catalogRepo = $this->createStub(\Repositories\Contracts\Catalog\CatalogRepository::class);
         $adultTicket = new \Models\Tickets\Ticket();
-        $adultTicket->price = 19.99;
+        $adultTicket->price = '19.99';
         $childTicket = new \Models\Tickets\Ticket();
-        $childTicket->price = 9.99;
+        $childTicket->price = '9.99';
 
         $catalogRepo
             ->method('priceFor')
@@ -72,7 +72,7 @@ final class CartServiceTest extends TestCase
 
         $catalog = new TicketCatalog($catalogRepo);
 
-        $accommodationsRepo = $this->createMock(\Repositories\Contracts\Accommodation\AccommodationRepository::class);
+        $accommodationsRepo = $this->createStub(\Repositories\Contracts\Accommodation\AccommodationRepository::class);
         $accommodations = new AccommodationService($accommodationsRepo);
         $logger = new Logger(new MemoryLogWriter());
 

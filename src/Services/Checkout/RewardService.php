@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Services\Checkout;
 
-use Models\Rewards\RewardPoint;
+use Repositories\Contracts\Rewards\RewardPointRepository;
 
 final class RewardService
 {
     private const POINTS_PER_POUND = 100;
     private const TRANSACTION_EARNED = 'earned';
+
+    public function __construct(private readonly RewardPointRepository $rewardPoints)
+    {
+    }
 
     public function pointsFor(float $total): int
     {
@@ -24,7 +28,7 @@ final class RewardService
             return;
         }
 
-        RewardPoint::create([
+        $this->rewardPoints->create([
             'customer_id' => $customerId,
             'order_id' => $orderId,
             'points' => $points,

@@ -40,4 +40,18 @@ final class ViewRendererTest extends TestCase
         $this->expectException(LogicException::class);
         $this->views->render('missing');
     }
+
+    public function testLayoutEscapesDocumentTitle(): void
+    {
+        $views = new ViewRenderer(dirname(__DIR__, 3) . '/src/Views');
+
+        $body = $views->render('layouts/layout-header-structure', [
+            'documentTitle' => '<script>alert(1)</script>',
+        ])->body();
+
+        self::assertStringContainsString(
+            '<title>&lt;script&gt;alert(1)&lt;/script&gt;</title>',
+            $body,
+        );
+    }
 }

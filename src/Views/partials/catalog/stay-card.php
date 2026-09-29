@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Core\Constants\RedirectKey;
-use Core\CSRF;
+use Core\Security\CSRF;
 use Core\View\Format;
 use Core\View\View;
 

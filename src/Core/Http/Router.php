@@ -15,12 +15,16 @@ final class Router
 
     public function __construct(
         private readonly RouteResolutionStrategy $routeResolution,
+        private readonly MiddlewarePipeline $middlewarePipeline,
     ) {
     }
 
-    public static function withResolver(Closure $resolve): self
+    public static function withResolver(Closure $resolve, ?MiddlewarePipeline $middlewarePipeline = null): self
     {
-        return new self(new RouteResolutionStrategy($resolve));
+        return new self(
+            new RouteResolutionStrategy($resolve),
+            $middlewarePipeline ?? MiddlewarePipeline::default(),
+        );
     }
 
     public function get(string $path, string $handler, array $middleware = []): self
@@ -43,7 +47,7 @@ final class Router
 
         $route = $this->routes[$key];
 
-        foreach ($route->middleware as $name) {
+        foreach ($this->middlewarePipeline->getOrdered($route->middleware) as $name) {
             $response = $this->routeResolution->resolveMiddleware($name)->handle($request);
 
             if ($response !== null) {

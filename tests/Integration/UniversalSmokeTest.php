@@ -11,6 +11,7 @@ use Controllers\Cart as CartController;
 use Controllers\Home;
 use Controllers\Payment;
 use Controllers\Ticket;
+use Illuminate\Database\ConnectionInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -24,7 +25,10 @@ final class UniversalSmokeTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->container = new Container(dirname(__DIR__, 2));
+        $this->container = new Container(
+            dirname(__DIR__, 2),
+            $this->createStub(ConnectionInterface::class),
+        );
     }
 
     public function testEveryControllerCanBeResolvedByContainer(): void

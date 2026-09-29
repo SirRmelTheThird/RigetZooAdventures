@@ -7,7 +7,7 @@ namespace Controllers;
 use Core\Constants\RedirectKey;
 use Core\Http\Request;
 use Core\Http\Response;
-use Core\Session\Session;
+use Core\Session\SessionStore;
 use Core\View\ViewRenderer;
 use Requests\Cart\AddAccommodationToCartRequest;
 use Services\Accommodations\AccommodationService;
@@ -21,6 +21,7 @@ final class Accommodation
         private readonly AccommodationService $accommodations,
         private readonly CartService $carts,
         private readonly AddAccommodationToCartRequest $addRequest,
+        private readonly SessionStore $session,
     ) {
     }
 
@@ -40,7 +41,7 @@ final class Accommodation
     public function addToCart(Request $request): Response
     {
         $this->carts->addAccommodation($this->addRequest->parse($request->body()));
-        Session::flashSuccess(Messages::ACCOMMODATION_ADDED);
+        $this->session->flashSuccess(Messages::ACCOMMODATION_ADDED);
         return Response::redirect(RedirectKey::CART);
     }
 }

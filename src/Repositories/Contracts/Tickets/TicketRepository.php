@@ -12,6 +12,16 @@ interface TicketRepository
 {
     public function findById(string $ticketId): ?Ticket;
     public function findByTicketTypeAndCategory(string $ticketType, TicketCategory $category): ?Ticket;
-    public function reserve(string $ticketType, TicketCategory $category, int $quantity): Ticket;
+
+    /**
+     * Locks a ticket row for reservation.
+     */
+    public function lockForReservation(string $ticketType, TicketCategory $category): Ticket;
+
+    /**
+     * Applies the stock decrement after verifying availability.
+     */
+    public function decrementAvailableQuantity(Ticket $ticket, int $quantity): void;
+
     public function listAll(): Collection;
 }

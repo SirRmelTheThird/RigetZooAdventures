@@ -8,7 +8,7 @@ use Cart\AccommodationItem;
 use DateTimeImmutable;
 use DTOs\Accommodations\AccommodationSelection;
 use Enums\OrderStatus;
-use Exceptions\CartException;
+use Exceptions\Cart\CartException;
 use Illuminate\Database\Eloquent\Collection;
 use Models\Accommodations\Accommodation;
 use Repositories\Contracts\Accommodation\AccommodationRepository;
@@ -61,7 +61,13 @@ final class AccommodationService
 
     private function assertAvailable(Accommodation $accommodation, string $startDate, string $endDate): void
     {
-        if ($this->hasUnavailableDateOverlap($accommodation, $startDate, $endDate)) {
+        $ranges = $this->unavailableRanges((string) $accommodation->id);
+
+        if (!$this->hasSeasonDataForRange($ranges, $startDate, $endDate)) {
+            throw new CartException(Messages::ACCOMMODATION_UNAVAILABLE);
+        }
+
+        if ($this->hasUnavailableDateOverlapFromRanges($ranges, $startDate, $endDate)) {
             throw new CartException(Messages::ACCOMMODATION_UNAVAILABLE);
         }
 
@@ -70,9 +76,38 @@ final class AccommodationService
         }
     }
 
-    private function hasUnavailableDateOverlap(Accommodation $accommodation, string $startDate, string $endDate): bool
+    private function hasSeasonDataForRange(array $ranges, string $startDate, string $endDate): bool
     {
-        $ranges = $this->unavailableRanges((string) $accommodation->id);
+        if ($ranges === []) {
+            // If we have no unavailability data for the accommodation, we treat the
+            // requested dates as outside the configured season windows.
+            return false;
+        }
+
+        $startYear = substr($startDate, 0, 4);
+        $endYear = substr($endDate, 0, 4);
+
+        $hasStartYear = false;
+        $hasEndYear = false;
+
+        foreach ($ranges as $range) {
+            $rangeStartYear = substr((string) $range['start_date'], 0, 4);
+            $rangeEndYear = substr((string) $range['end_date'], 0, 4);
+
+            if ($rangeStartYear === $startYear || $rangeEndYear === $startYear) {
+                $hasStartYear = true;
+            }
+
+            if ($rangeStartYear === $endYear || $rangeEndYear === $endYear) {
+                $hasEndYear = true;
+            }
+        }
+
+        return $hasStartYear && $hasEndYear;
+    }
+
+    private function hasUnavailableDateOverlapFromRanges(array $ranges, string $startDate, string $endDate): bool
+    {
         foreach ($ranges as $range) {
             if ($startDate < $range['end_date'] && $endDate > $range['start_date']) {
                 return true;
