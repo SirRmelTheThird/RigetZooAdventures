@@ -70,6 +70,18 @@ final class ValidatorTest extends TestCase
         self::assertSame(['s'], array_keys($this->validator->validate(['s' => 'éà'], $rules)->errors()));
     }
 
+    public function testUuidAcceptsCanonicalUuidsAndRejectsIntegers(): void
+    {
+        $rules = ['id' => ['required', 'uuid']];
+
+        self::assertTrue($this->validator->validate(
+            ['id' => '3a1d0c2e-4b5f-6789-abcd-ef0123456789'],
+            $rules
+        )->passes());
+        self::assertFalse($this->validator->validate(['id' => '3'], $rules)->passes());
+        self::assertFalse($this->validator->validate(['id' => 'not-a-uuid'], $rules)->passes());
+    }
+
     public function testDateAndFutureDate(): void
     {
         $rules = ['d' => ['date', 'futureDate']];

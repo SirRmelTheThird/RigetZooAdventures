@@ -11,7 +11,7 @@ final class AccommodationItem implements CartItem
     private const REQUIRED_KEYS = ['id', 'name', 'startDate', 'endDate', 'nights', 'pricePerNight', 'guests'];
 
     public function __construct(
-        public readonly int $accommodationId,
+        public readonly string $accommodationId,
         public readonly string $name,
         public readonly string $startDate,
         public readonly string $endDate,
@@ -21,12 +21,13 @@ final class AccommodationItem implements CartItem
     ) {
     }
 
+    /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
         InvalidCartPayloadException::unlessHasKeys($data, self::REQUIRED_KEYS);
 
         return new self(
-            (int) $data['id'],
+            (string) $data['id'],
             (string) $data['name'],
             (string) $data['startDate'],
             (string) $data['endDate'],
@@ -46,11 +47,12 @@ final class AccommodationItem implements CartItem
         return ItemType::Accommodation;
     }
 
-    public function total(): float
+    public function total(): int
     {
-        return round($this->nights * $this->pricePerNight, 2);
+        return (int) round($this->nights * $this->pricePerNight * 100);
     }
 
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
         return [

@@ -6,7 +6,7 @@ namespace Cart;
 
 use Core\Constants\SessionKey;
 use Core\Logging\Logger;
-use Core\SessionStore;
+use Core\Session\SessionStore;
 
 final class SessionCartStore implements CartStore
 {
@@ -23,7 +23,6 @@ final class SessionCartStore implements CartStore
         }
 
         try {
-            /** @var mixed $raw */
             $raw = $this->session->get(SessionKey::CART);
 
             return Cart::fromArray((array) $raw);

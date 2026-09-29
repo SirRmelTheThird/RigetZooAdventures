@@ -4,20 +4,16 @@ declare(strict_types=1);
 
 namespace Controllers;
 
-use Core\Constants\RedirectKey;
-use Core\Request;
-use Core\Response;
-use Core\Session;
-use Core\ViewRenderer;
-use Services\AuthService;
-use Services\OrderQueryService;
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Session\SessionStore;
+use Core\View\ViewRenderer;
 
 final class Home
 {
     public function __construct(
         private readonly ViewRenderer $views,
-        private readonly OrderQueryService $orders,
-        private readonly AuthService $auth,
+        private readonly SessionStore $session,
     ) {
     }
 
@@ -34,22 +30,5 @@ final class Home
     public function educational(Request $request): Response
     {
         return $this->views->render('educational');
-    }
-
-    public function profile(Request $request): Response
-    {
-        $customerId = Session::userId();
-        $user = $this->auth->findAuthenticatedCustomer($customerId);
-
-        if ($user === null) {
-            Session::invalidate();
-
-            return Response::redirect(RedirectKey::LOGIN);
-        }
-
-        return $this->views->render('profile', [
-            'user' => $user,
-            'orders' => $this->orders->ordersFor($customerId),
-        ]);
     }
 }

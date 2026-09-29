@@ -6,6 +6,7 @@
 # Dependencies
 vendor/
 node_modules/
+var/
 
 # IDE
 .idea/
@@ -43,3 +44,4 @@ MEMORY_TMP_skipped_phpstan_fix.txt
 .php-cs-fixer.cache
 *.cache
 .php-cs-fixer.cache
+.phpstan

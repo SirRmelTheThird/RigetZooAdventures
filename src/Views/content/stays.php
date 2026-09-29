@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Support\Messages;
+
 return [
     'header' => [
         'kicker' => 'Overnight stays',
@@ -17,6 +19,8 @@ return [
         'max_guests_prefix' => 'Up to ',
         'submit_label' => 'Book stay',
         'media_icon' => 'cabin',
+        'date_unavailable' => Messages::ACCOMMODATION_DATE_UNAVAILABLE,
+        'range_unavailable' => Messages::ACCOMMODATION_RANGE_UNAVAILABLE,
     ],
     'empty' => [
         'title' => 'No stays available right now',

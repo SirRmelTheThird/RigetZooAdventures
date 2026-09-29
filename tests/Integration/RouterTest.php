@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use Core\HttpStatus;
-use Core\Middleware;
-use Core\Request;
-use Core\Response;
-use Core\Router;
-use Exceptions\AuthException;
+use Core\Http\HttpStatus;
+use Core\Http\Middleware;
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Http\Router;
+use Exceptions\Auth\AuthException;
 use Middleware\AuthMiddleware;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\EchoController;

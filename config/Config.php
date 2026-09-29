@@ -6,7 +6,10 @@ namespace Config;
 use Dotenv\Dotenv;
 
 class Config
-{
+{    
+    /**
+     * @var array<string, string>
+    */
     private static $env = [];
     private static $loaded = false;
 
@@ -32,7 +35,7 @@ class Config
         self::$loaded = true;
     }
 
-    public static function get($key, $default = null)
+    public static function get(string $key, ?string $default = null)
     {
         if (!self::$loaded) {
             self::load();
@@ -44,5 +47,18 @@ class Config
     public static function isDebug()
     {
         return self::get('APP_DEBUG', 'false') === 'true';
+    }
+
+    public static function shouldDisplayErrors(): bool
+    {
+        $debug = self::get('APP_DEBUG');
+
+        if ($debug !== null) {
+            return filter_var($debug, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        }
+
+        $environment = strtolower((string) self::get('APP_ENV', 'production'));
+
+        return in_array($environment, ['local', 'development', 'test'], true);
     }
 }

@@ -13,16 +13,22 @@ use Controllers\Auth;
 use Controllers\Cart as CartController;
 use Controllers\Home;
 use Controllers\Payment;
+use Controllers\Profile;
 use Controllers\Ticket;
-use Core\ErrorHandler;
-use Core\PhpSessionStore;
-use Core\SessionStore;
+use Core\Error\ErrorHandler;
+use Core\Session\PhpSessionStore;
+use DTOs\Accommodations\AccommodationSelection;
+use DTOs\Auth\LoginCredentials;
+use DTOs\Auth\Registration;
+use DTOs\Tickets\TicketSelection;
+use Core\Session\SessionStore;
 use Core\Logging\FileLogWriter;
 use Core\Logging\Logger;
-use Core\Router;
+use Core\Http\Router;
+use Core\Http\MiddlewarePipeline;
 use Core\Validation\Validator;
-use Core\ViewRenderer;
-use Exceptions\MissingEnvVariableException;
+use Core\View\ViewRenderer;
+use Exceptions\System\MissingEnvVariableException;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\ConnectionInterface;
 use Middleware\AuthMiddleware;
@@ -30,39 +36,46 @@ use Middleware\CSRFMiddleware;
 use Payments\PaymentGateway;
 use Payments\StripeGateway;
 use Payments\StripeSettings;
-use Requests\AddAccommodationToCartRequest;
-use Requests\BookTicketRequest;
-use Requests\LoginRequest;
-use Requests\RemoveCartItemRequest;
-use Requests\SignupRequest;
-use Repositories\AccommodationRepository;
-use Repositories\CatalogRepository;
-use Repositories\EloquentAccommodationRepository;
-use Repositories\EloquentCatalogRepository;
-use Repositories\EloquentOrderItemRepository;
-use Repositories\EloquentOrderQueryRepository;
-use Repositories\EloquentOrderRepository;
-use Repositories\EloquentTicketRepository;
-use Repositories\OrderItemRepository;
-use Repositories\OrderQueryRepository;
-use Repositories\OrderRepository;
-use Repositories\TicketRepository;
-use Services\AccommodationService;
-use Services\AuthService;
-use Services\BookingService;
-use Services\CartService;
-use Services\CheckoutService;
+use Requests\Cart\AddAccommodationToCartRequest;
+use Requests\Tickets\BookTicketRequest;
+use Requests\Auth\LoginRequest;
+use Requests\Cart\RemoveCartItemRequest;
+use Requests\Auth\SignupRequest;
+use Repositories\Contracts\Accommodation\AccommodationRepository;
+use Repositories\Contracts\Auth\CustomerRepository;
+use Repositories\Contracts\Catalog\CatalogRepository;
+use Repositories\Contracts\Payments\WebhookEventRepository;
+use Repositories\Contracts\Rewards\RewardPointRepository;
+use Repositories\Eloquent\Accommodation\EloquentAccommodationRepository;
+use Repositories\Eloquent\Auth\EloquentCustomerRepository;
+use Repositories\Eloquent\Catalog\EloquentCatalogRepository;
+use Repositories\Eloquent\Orders\EloquentOrderItemRepository;
+use Repositories\Eloquent\Orders\EloquentOrderQueryRepository;
+use Repositories\Eloquent\Orders\EloquentOrderRepository;
+use Repositories\Eloquent\Payments\EloquentWebhookEventRepository;
+use Repositories\Eloquent\Rewards\EloquentRewardPointRepository;
+use Repositories\Eloquent\Tickets\EloquentTicketRepository;
+use Repositories\Contracts\Orders\OrderItemRepository;
+use Repositories\Contracts\Orders\OrderQueryRepository;
+use Repositories\Contracts\Orders\OrderRepository;
+use Repositories\Contracts\Tickets\TicketRepository;
+use Services\Accommodations\AccommodationService;
+use Services\Auth\AuthService;
+use Services\Checkout\CartService;
+use Services\Checkout\CheckoutService;
+use Services\Checkout\PaymentWebhookHandler;
+use Services\Checkout\RewardService;
 use Services\Notifications\CurlWebhookTransport;
 use Services\Notifications\DiscordEmbedFactory;
 use Services\Notifications\DiscordNotificationService;
 use Services\Notifications\DiscordSettings;
 use Services\Notifications\DiscordWebhookClient;
-use Services\OrderItemLoader;
-use Services\OrderQueryService;
-use Services\PaymentWebhookHandler;
-use Services\RewardService;
-use Services\TicketCatalog;
-use Services\TicketInventory;
+use Services\Orders\OrderItemLoader;
+use Services\Orders\OrderQueryService;
+use Services\Orders\OrderWriter;
+use Services\Tickets\BookingService;
+use Services\Tickets\TicketCatalog;
+use Services\Tickets\TicketInventory;
 use Stripe\StripeClient;
 
 final class Container
@@ -70,67 +83,94 @@ final class Container
     /** @var array<string, object> */
     private array $shared = [];
 
-    public function __construct(private readonly string $basePath)
+    /** @var array<string, Closure> */
+    private array $factories = [];
+
+    public function __construct(
+        private readonly string $basePath,
+        private readonly ?ConnectionInterface $database = null,
+    )
     {
+    }
+
+    public function databaseConnection(): ?ConnectionInterface
+    {
+        return $this->database;
     }
 
     public function make(string $class): object
     {
-        return match ($class) {
-            Home::class => new Home(
+        if ($this->factories === []) {
+            $this->factories = [
+            Home::class => fn (): Home => new Home(
                 $this->views(),
-                $this->orderQueries(),
-                $this->auth()
+                $this->phpSessionStore()
             ),
 
-            Auth::class => new Auth(
+            Auth::class => fn (): Auth => new Auth(
                 $this->views(),
                 $this->auth(),
                 new LoginRequest($this->validator()),
-                new SignupRequest($this->validator())
+                new SignupRequest($this->validator()),
+                $this->phpSessionStore()
             ),
 
-            CartController::class => new CartController(
+            CartController::class => fn (): CartController => new CartController(
                 $this->views(),
                 $this->carts(),
                 $this->rewards(),
-                new RemoveCartItemRequest($this->validator())
+                new RemoveCartItemRequest($this->validator()),
+                $this->phpSessionStore()
             ),
 
-            Ticket::class => new Ticket(
+            Ticket::class => fn (): Ticket => new Ticket(
                 $this->views(),
                 $this->catalog(),
                 $this->carts(),
-                new BookTicketRequest($this->validator())
+                new BookTicketRequest($this->validator()),
+                $this->phpSessionStore()
             ),
 
-            Accommodation::class => new Accommodation(
+            Accommodation::class => fn (): Accommodation => new Accommodation(
                 $this->views(),
                 $this->accommodations(),
                 $this->carts(),
-                new AddAccommodationToCartRequest($this->validator())
+                new AddAccommodationToCartRequest($this->validator()),
+                $this->phpSessionStore()
             ),
 
-            Payment::class => new Payment(
+            Payment::class => fn (): Payment => new Payment(
                 $this->views(),
                 $this->carts(),
                 $this->checkout(),
                 $this->webhooks(),
-                $this->stripeSettings()
+                $this->stripeSettings(),
+                $this->phpSessionStore()
             ),
 
-            AuthMiddleware::class => new AuthMiddleware(),
-            CSRFMiddleware::class => new CSRFMiddleware(),
-
-            default => throw new ContainerException(
-                "Nothing is registered for {$class}"
+            Profile::class => fn (): Profile => new Profile(
+                $this->views(),
+                $this->orderQueries(),
+                $this->auth(),
+                $this->phpSessionStore()
             ),
-        };
+
+            AuthMiddleware::class => fn (): AuthMiddleware => new AuthMiddleware(),
+            CSRFMiddleware::class => fn (): CSRFMiddleware => new CSRFMiddleware(),
+            MiddlewarePipeline::class => fn (): MiddlewarePipeline => MiddlewarePipeline::default(),
+            ];
+        }
+
+        if (!array_key_exists($class, $this->factories)) {
+            throw new ContainerException("Nothing is registered for {$class}");
+        }
+
+        return $this->factories[$class]();
     }
 
     public function router(): Router
     {
-        return Router::withResolver($this->make(...));
+        return Router::withResolver($this->make(...), $this->make(MiddlewarePipeline::class));
     }
 
     public function errorHandler(): ErrorHandler
@@ -173,6 +213,10 @@ final class Container
 
     private function db(): ConnectionInterface
     {
+        if ($this->database !== null) {
+            return $this->database;
+        }
+
         return Capsule::connection();
     }
 
@@ -264,7 +308,7 @@ final class Container
     {
         return $this->once(
             RewardService::class,
-            fn (): RewardService => new RewardService()
+            fn (): RewardService => new RewardService($this->rewardPointRepository())
         );
     }
 
@@ -304,8 +348,26 @@ final class Container
         return $this->once(
             AuthService::class,
             fn (): AuthService => new AuthService(
-                $this->logger()
+                $this->logger(),
+                $this->phpSessionStore(),
+                $this->customerRepository()
             )
+        );
+    }
+
+    private function customerRepository(): CustomerRepository
+    {
+        return $this->once(
+            CustomerRepository::class,
+            fn (): CustomerRepository => new EloquentCustomerRepository()
+        );
+    }
+
+    private function rewardPointRepository(): RewardPointRepository
+    {
+        return $this->once(
+            RewardPointRepository::class,
+            fn (): RewardPointRepository => new EloquentRewardPointRepository()
         );
     }
 
@@ -341,18 +403,29 @@ final class Container
         );
     }
 
+    private function orderWriter(): OrderWriter
+    {
+        return $this->once(
+            OrderWriter::class,
+            fn (): OrderWriter => new OrderWriter(
+                $this->orderRepository(),
+                $this->orderItemRepository(),
+                $this->inventory(),
+                $this->accommodations()
+            )
+        );
+    }
+
     private function bookings(): BookingService
     {
         return $this->once(
             BookingService::class,
             fn (): BookingService => new BookingService(
                 $this->db(),
-                $this->inventory(),
-                $this->accommodations(),
                 $this->rewards(),
                 $this->logger(),
                 $this->orderRepository(),
-                $this->orderItemRepository()
+                $this->orderWriter()
             )
         );
     }
@@ -395,8 +468,17 @@ final class Container
             fn (): PaymentWebhookHandler => new PaymentWebhookHandler(
                 $this->gateway(),
                 $this->logger(),
-                $this->discordNotificationService()
+                $this->discordNotificationService(),
+                $this->webhookEventRepository()
             )
+        );
+    }
+
+    private function webhookEventRepository(): WebhookEventRepository
+    {
+        return $this->once(
+            WebhookEventRepository::class,
+            fn (): WebhookEventRepository => new EloquentWebhookEventRepository()
         );
     }
 

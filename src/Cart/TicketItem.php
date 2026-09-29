@@ -21,6 +21,7 @@ final class TicketItem implements CartItem
     ) {
     }
 
+    /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
         InvalidCartPayloadException::unlessHasKeys($data, self::REQUIRED_KEYS);
@@ -45,11 +46,12 @@ final class TicketItem implements CartItem
         return ItemType::Ticket;
     }
 
-    public function total(): float
+    public function total(): int
     {
-        return round($this->adult * $this->adultPrice + $this->child * $this->childPrice, 2);
+        return (int) round($this->adult * $this->adultPrice * 100 + $this->child * $this->childPrice * 100);
     }
 
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
         return [

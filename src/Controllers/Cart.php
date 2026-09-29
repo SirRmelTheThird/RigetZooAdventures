@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Controllers;
 
 use Core\Constants\RedirectKey;
-use Core\Request;
-use Core\Response;
-use Core\Session;
-use Core\ViewRenderer;
-use Requests\RemoveCartItemRequest;
-use Services\CartService;
-use Services\RewardService;
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Session\SessionStore;
+use Core\View\ViewRenderer;
+use Requests\Cart\RemoveCartItemRequest;
+use Services\Checkout\CartService;
+use Services\Checkout\RewardService;
 use Support\Messages;
 
 final class Cart
@@ -21,6 +21,7 @@ final class Cart
         private readonly CartService $carts,
         private readonly RewardService $rewards,
         private readonly RemoveCartItemRequest $removeRequest,
+        private readonly SessionStore $session,
     ) {
     }
 
@@ -50,7 +51,7 @@ final class Cart
 
     private function redirectToCartWithSuccess(string $message): Response
     {
-        Session::flashSuccess($message);
+        $this->session->flashSuccess($message);
 
         return Response::redirect(RedirectKey::CART);
     }

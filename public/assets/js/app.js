@@ -6,8 +6,17 @@
     const REVEAL_MAX_STEPS = 4;
     const CURRENCY_SYMBOL = '£';
     const MONEY_DECIMALS = 2;
+    const FLASH_DURATION_MS = 3500;
 
     const formatMoney = (amount) => CURRENCY_SYMBOL + amount.toFixed(MONEY_DECIMALS);
+
+    function initFlashMessages() {
+        document.querySelectorAll('[data-flash-message]').forEach((message) => {
+            setTimeout(() => {
+                message.remove();
+            }, FLASH_DURATION_MS);
+        });
+    }
 
     function initImageFallbacks() {
         const hide = (img) => img.remove();
@@ -88,18 +97,119 @@
     function initDateRanges() {
         const DAY_MS = 24 * 60 * 60 * 1000;
 
+        function parseUnavailable(input) {
+            const raw = input.getAttribute('data-unavailable');
+            if (!raw) {
+                return [];
+            }
+            try {
+                return JSON.parse(raw);
+            } catch {
+                return [];
+            }
+        }
+
+        function isUnavailable(dateStr, ranges) {
+            for (let i = 0; i < ranges.length; i++) {
+                if (dateStr >= ranges[i].start_date && dateStr < ranges[i].end_date) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function rangeOverlapsUnavailable(startStr, endStr, ranges) {
+            for (let i = 0; i < ranges.length; i++) {
+                if (startStr < ranges[i].end_date && endStr > ranges[i].start_date) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function findNextUnavailableStart(startStr, ranges) {
+            let nextStart = null;
+            for (let i = 0; i < ranges.length; i++) {
+                if (ranges[i].start_date >= startStr) {
+                    if (nextStart === null || ranges[i].start_date < nextStart) {
+                        nextStart = ranges[i].start_date;
+                    }
+                }
+            }
+            return nextStart;
+        }
+
+        function deselectAndWarn(input, message) {
+            input.setCustomValidity(message);
+            input.reportValidity();
+            input.value = '';
+            input.setCustomValidity('');
+        }
+
         document.querySelectorAll('[data-date-range]').forEach((form) => {
             const start = form.querySelector('[data-range-start]');
             const end = form.querySelector('[data-range-end]');
+            const unavailable = parseUnavailable(start);
+            const msgDateUnavailable = form.dataset.msgDateUnavailable;
+            const msgRangeUnavailable = form.dataset.msgRangeUnavailable;
+            const initialEndMax = end.getAttribute('max') || '';
 
             start.addEventListener('change', () => {
                 if (!start.value) {
+                    end.removeAttribute('min');
+                    if (initialEndMax) {
+                        end.max = initialEndMax;
+                    } else {
+                        end.removeAttribute('max');
+                    }
                     return;
                 }
+
+                if (isUnavailable(start.value, unavailable)) {
+                    deselectAndWarn(start, msgDateUnavailable);
+                    return;
+                }
+
                 const minEnd = new Date(new Date(start.value).getTime() + DAY_MS).toISOString().slice(0, 10);
                 end.min = minEnd;
-                if (end.value && end.value < minEnd) {
-                    end.value = minEnd;
+
+                const nextBlocked = findNextUnavailableStart(start.value, unavailable);
+                if (nextBlocked !== null) {
+                    end.max = nextBlocked;
+                } else if (initialEndMax) {
+                    end.max = initialEndMax;
+                }
+
+                if (end.value) {
+                    if (end.value < minEnd || (end.max && end.value > end.max) || rangeOverlapsUnavailable(start.value, end.value, unavailable)) {
+                        deselectAndWarn(end, msgRangeUnavailable);
+                    }
+                }
+            });
+
+            end.addEventListener('change', () => {
+                if (!end.value) {
+                    return;
+                }
+
+                if (start.value && rangeOverlapsUnavailable(start.value, end.value, unavailable)) {
+                    deselectAndWarn(end, msgRangeUnavailable);
+                    return;
+                }
+
+                if (isUnavailable(end.value, unavailable)) {
+                    deselectAndWarn(end, msgDateUnavailable);
+                }
+            });
+
+            form.addEventListener('submit', (event) => {
+                if (!start.value || !end.value) {
+                    return;
+                }
+
+                if (rangeOverlapsUnavailable(start.value, end.value, unavailable)) {
+                    event.preventDefault();
+                    deselectAndWarn(end, msgRangeUnavailable);
                 }
             });
         });
@@ -120,4 +230,5 @@
     initTicketForms();
     initDateRanges();
     initConfirmations();
+    initFlashMessages();
 })();

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use Core\Request;
-use Core\Response;
+use Core\Http\Request;
+use Core\Http\Response;
 
 /**
  * Minimal controller double used to exercise the router in isolation.

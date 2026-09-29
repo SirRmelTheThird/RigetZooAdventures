@@ -9,10 +9,10 @@ class CreateRewardPointsTable
     public function up()
     {
         Capsule::schema()->create('reward_points', function ($table) {
-            $table->id();
-            $table->unsignedBigInteger('customer_id');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('customer_id');
             $table->integer('points')->default(0);
-            $table->unsignedBigInteger('order_id')->nullable();
+            $table->foreignUuid('order_id')->nullable();
             $table->string('transaction_type', 50)->default('earned');
             $table->text('description')->nullable();
             $table->timestamps();

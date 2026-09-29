@@ -14,12 +14,13 @@ enum Rule: string
     case MinLength = 'minLength';
     case Date = 'date';
     case FutureDate = 'futureDate';
+    case Uuid = 'uuid';
 
     public function requiresParameter(): bool
     {
         return match ($this) {
             self::Min, self::Max, self::MinLength => true,
-            self::Required, self::Email, self::Integer, self::Date, self::FutureDate => false,
+            self::Required, self::Email, self::Integer, self::Date, self::FutureDate, self::Uuid => false,
         };
     }
 
@@ -34,6 +35,7 @@ enum Rule: string
             self::MinLength => ':field must be at least :param characters.',
             self::Date => ':field must be a valid date.',
             self::FutureDate => ':field must not be in the past.',
+            self::Uuid => ':field must be a valid UUID.',
         };
     }
 }

@@ -8,6 +8,10 @@ use RuntimeException;
 
 final class InvalidCartPayloadException extends RuntimeException
 {
+    /**
+     * @param array<string, mixed> $data
+     * @param list<string> $keys
+     */
     public static function unlessHasKeys(array $data, array $keys): void
     {
         foreach ($keys as $key) {

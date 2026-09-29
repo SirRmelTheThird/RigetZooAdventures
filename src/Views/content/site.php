@@ -9,7 +9,7 @@ return [
     'short_name' => 'RZA',
     'description' => 'Book zoo tickets, safari experiences, and overnight stays at Riget Zoo Adventures.',
     'tagline' => 'Safari days, wildlife learning, and overnight stays planned in one place.',
-    'logo' => '/assets/images/logo/rza-logo.png',
+    'logo' => '/assets/images/logo/rza-logo-shortened.png',
     'nav' => [
         ['label' => 'Home', 'href' => RedirectKey::HOME],
         [

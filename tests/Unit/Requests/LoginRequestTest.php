@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Requests;
 
 use Core\Validation\Validator;
-use DTOs\LoginCredentials;
-use Exceptions\ValidationException;
+use DTOs\Auth\LoginCredentials;
+use Exceptions\Validation\ValidationException;
 use PHPUnit\Framework\TestCase;
-use Requests\LoginRequest;
+use Requests\Auth\LoginRequest;
 
 final class LoginRequestTest extends TestCase
 {

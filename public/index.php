@@ -2,15 +2,17 @@
 
 declare(strict_types=1);
 
-ini_set('display_errors', '1');
-error_reporting(E_ALL);
-
 use Bootstrap\Container;
-use Core\Request;
-use Core\Session;
+use Config\Config;
+use Core\Http\Request;
+use Core\Session\Session;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 require dirname(__DIR__) . '/config/Bootstrap.php';
+
+Config::load();
+ini_set('display_errors', Config::shouldDisplayErrors() ? '1' : '0');
+error_reporting(Config::shouldDisplayErrors() ? E_ALL : E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
 Session::start();
 
@@ -18,7 +20,8 @@ $root = dirname(__DIR__);
 $container = new Container($root);
 $router = $container->router();
 
-require $root . '/routes.php';
+$registerRoutes = require $root . '/routes.php';
+$registerRoutes($router);
 
 $request = Request::fromGlobals();
 

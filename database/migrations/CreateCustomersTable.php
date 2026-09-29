@@ -3,13 +3,14 @@
 namespace Database\Migrations;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\Schema\Blueprint;
 
 class CreateCustomersTable
 {
     public function up()
     {
-        Capsule::schema()->create('customers', function ($table) {
-            $table->id();
+        Capsule::schema()->create('customers', function (Blueprint $table) {
+            $table->uuid('id')->primary();
             $table->string('first_name', 50);
             $table->string('last_name', 50);
             $table->string('username', 50)->unique();

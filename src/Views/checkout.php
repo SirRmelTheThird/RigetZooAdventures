@@ -2,27 +2,31 @@
 
 declare(strict_types=1);
 
+use Contracts\CheckoutContentInterface;
 use Core\Constants\RedirectKey;
-use Core\CSRF;
+use Core\Security\CSRF;
 use Core\View\CartItemPresenter;
 use Core\View\Format;
 use Core\View\View;
 
+/**
+ * @var string $stripePublishableKey
+ */
+
 $pageTitle = 'Checkout';
 require __DIR__ . '/layouts/header.php';
 
-$content = View::content('checkout');
-$payment = $content['payment'];
+$content = View::content(CheckoutContentInterface::class);
+$payment = $content->getPayment();
 $items = array_map([CartItemPresenter::class, 'present'], $cart['items']);
 ?>
-
 <div class="rz-container rz-page">
-    <?php View::partial('page-header', ['header' => $content['header']]); ?>
+    <?php View::partial('layout/page-header', ['header' => $content->getHeader()]); ?>
 
     <div class="rz-checkout rz-checkout--pay">
         <div>
             <?php if (!empty($error)): ?>
-                <?php View::partial('alert', ['tone' => 'error', 'messages' => [$error]]); ?>
+                <?php View::partial('feedback/alert', ['tone' => 'error', 'messages' => [$error]]); ?>
             <?php endif; ?>
 
             <?php if (!empty($clientSecret)): ?>
@@ -41,13 +45,13 @@ $items = array_map([CartItemPresenter::class, 'present'], $cart['items']);
         </div>
 
         <?php
-        View::partial('order-review', [
-            'title' => $content['summary']['title'],
+        View::partial('cart/order-review', [
+            'title' => $content->getSummary()['title'],
             'items' => $items,
-            'labels' => $content['summary'],
+            'labels' => $content->getSummary(),
             'total' => (float) $cart['total'],
         ]);
-?>
+        ?>
     </div>
 </div>
 

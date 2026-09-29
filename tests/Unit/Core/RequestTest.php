@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
-use Core\Request;
+use Core\Http\Request;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

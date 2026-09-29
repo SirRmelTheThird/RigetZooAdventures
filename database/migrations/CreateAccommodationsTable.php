@@ -9,13 +9,15 @@ class CreateAccommodationsTable
     public function up()
     {
         Capsule::schema()->create('accommodations', function ($table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name', 100);
             $table->text('description');
             $table->decimal('price_per_night', 10, 2);
             $table->integer('max_guests');
             $table->integer('available_rooms')->default(10);
             $table->string('location', 100)->nullable();
+            $table->date('available_from')->nullable();
+            $table->date('available_until')->nullable();
             $table->string('image_url', 255)->nullable();
             $table->timestamps();
         });

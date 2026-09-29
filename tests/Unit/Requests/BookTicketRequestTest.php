@@ -6,9 +6,9 @@ namespace Tests\Unit\Requests;
 
 use Core\Validation\Validator;
 use Enums\TicketType;
-use Exceptions\ValidationException;
+use Exceptions\Validation\ValidationException;
 use PHPUnit\Framework\TestCase;
-use Requests\BookTicketRequest;
+use Requests\Tickets\BookTicketRequest;
 
 final class BookTicketRequestTest extends TestCase
 {

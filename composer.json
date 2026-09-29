@@ -11,15 +11,16 @@
         "test": "phpunit"
     },
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.4",
         "ext-mbstring": "*",
         "illuminate/database": "^11.0",
+        "ramsey/uuid": "^4.9",
         "stripe/stripe-php": "^19.0",
         "vlucas/phpdotenv": "^5.5"
     },
     "autoload": {
         "psr-4": {
-            "": "src/",
+            "RigetZooAdventures\\": "src/",
             "Config\\": "config/",
             "Database\\Migrations\\": "database/migrations/",
             "Database\\Seeders\\": "database/seeders/",
@@ -35,6 +36,7 @@
     "prefer-stable": true,
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.95",
+        "larastan/larastan": "3.0",
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^13.3",
         "squizlabs/php_codesniffer": "^4.0"

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Controllers;
 
 use Core\Constants\RedirectKey;
-use Core\Request;
-use Core\Response;
-use Core\Session;
-use Core\ViewRenderer;
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Session\SessionStore;
+use Core\View\ViewRenderer;
 use Enums\TicketType;
-use Requests\BookTicketRequest;
-use Services\CartService;
-use Services\TicketCatalog;
+use Requests\Tickets\BookTicketRequest;
+use Services\Checkout\CartService;
+use Services\Tickets\TicketCatalog;
 use Support\Messages;
 
 final class Ticket
@@ -22,6 +22,7 @@ final class Ticket
         private readonly TicketCatalog $catalog,
         private readonly CartService $carts,
         private readonly BookTicketRequest $bookRequest,
+        private readonly SessionStore $session,
     ) {
     }
 
@@ -56,9 +57,7 @@ final class Ticket
     private function addToCart(Request $request, TicketType $type): Response
     {
         $this->carts->addTickets($this->bookRequest->parse($request->body(), $type));
-
-        Session::flashSuccess(Messages::TICKETS_ADDED);
-
+        $this->session->flashSuccess(Messages::TICKETS_ADDED);
         return Response::redirect(RedirectKey::CART);
     }
 }

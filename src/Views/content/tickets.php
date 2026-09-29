@@ -22,9 +22,13 @@ return [
     'tiers' => [
         'standard' => [
             'card' => [
-                'title' => 'Standard Ticket',
-                'text' => 'Full-day entry to the zoo, animal habitats, visitor paths, restaurants, and family facilities.',
-                'includes' => ['Full-day zoo entry', 'Animal habitats and visitor paths', 'Restaurants and family facilities'],
+                'title' => 'Standard Tickets',
+                'text' => 'Perfect for families and wildlife lovers, enjoy a memorable day out exploring the wonders of nature, discovering fascinating animals, and creating lasting memories together.',
+                'includes' => [
+                    'first' => 'Full-Day Zoo Entry',
+                    'second' => 'Animal Habitats and Visitor paths',
+                    'third' => 'Restaurants and Family Facilities',
+                ],
                 'cta' => 'View Standard',
                 'featured' => false,
             ],
@@ -32,12 +36,26 @@ return [
             'page' => [
                 'kicker' => 'Standard admission',
                 'title' => 'Plan a classic zoo day.',
-                'lede' => 'A straightforward pass for habitats, facilities, food stops, and a full day at Riget Zoo Adventures.',
-                'form_title' => 'Standard tickets',
+                'lede' => 'Enjoy a memorable day discovering fascinating wildlife, exploring nature, and making lasting memories',
+                'form_title' => 'Standard Ticket',
                 'date_id' => 'standard_visit_date',
-                'form_intro' => 'Select your group size and visit date. You can review the total before checkout.',
-                'extra_pill' => 'Infants free',
-                'callout' => null,
+                'form_intro' => 'Choose your visit date and group size to plan your perfect day. Review your booking total before proceeding to checkout.',
+                'extra_pill' => [
+                    'Full-day zoo access',
+                    'Wildlife habitats',
+                    'Family-friendly visit',
+                ],
+                'callout' => [
+                    'title' => 'What’s included',
+                  'text' => [
+                      'Animal feeding demonstrations',
+                      'Wildlife conservation and educational displays',
+                      'Children\'s discovery activities',
+                      'Seasonal wildlife presentations',
+                      'Interactive animal information stations',
+                      'Self-guided zoo exploration',
+                  ],
+                ],
                 'media' => [
                     'src' => '/assets/images/webp/ticket-3.webp',
                     'alt' => 'Standard Ticket at Riget Zoo Adventures',
@@ -47,9 +65,13 @@ return [
         ],
         'premium' => [
             'card' => [
-                'title' => 'Premium Ticket',
-                'text' => 'Includes premium safari experiences, guided access, and the widest route through the park.',
-                'includes' => ['Drive-through safari', 'Walking safari and boat safari', 'Experienced guides and education programs'],
+                'title' => 'Premium Tickets',
+                'text' => 'Take your visit to the next level with an unforgettable wildlife adventure. Designed for curious explorers, enjoy a more immersive experience with exciting opportunities to discover the natural world.',
+                'includes' => [
+                    'first' => 'Drive-Through Safari',
+                    'second' => 'Guided Walking Safari and Boat Safari',
+                    'third' => 'Experience Guides and Education Programs',
+                ],
                 'cta' => 'View Premium',
                 'featured' => true,
             ],
@@ -57,14 +79,25 @@ return [
             'page' => [
                 'kicker' => 'Premium admission',
                 'title' => 'Unlock the full safari route.',
-                'lede' => 'Premium tickets add guided experiences and expanded access for visitors who want the complete day.',
-                'form_title' => 'Premium tickets',
+                'lede' => 'Make your visit truly memorable with an immersive wildlife adventure designed for curious explorers and nature enthusiasts.',
+                'form_title' => 'Premium Ticket',
                 'date_id' => 'premium_visit_date',
-                'form_intro' => 'Choose your group size and date. Premium access includes drive-through safari, walking safari, and boat safari experiences.',
-                'extra_pill' => 'Guided access',
+                'form_intro' => 'Get ready for an unforgettable wildlife adventure. Choose your visit date and the number of guests to get started.',
+                'extra_pill' => [
+                    'Premium admission',
+                    '3 safari experiences',
+                    'Expert-guided tours',
+                ],
                 'callout' => [
                     'title' => 'Premium includes',
-                    'text' => 'Drive-through safari, walking safari, boat safari, experienced guides, and education programs.',
+                    'text' => [
+                        'Priority access to selected attractions',
+                        'Exclusive wildlife viewing areas',
+                        'Behind-the-scenes animal care insights',
+                        'Personalised safari experience',
+                        'Premium visitor facilities',
+                        'Dedicated guest assistance',
+                    ],
                 ],
                 'media' => [
                     'src' => '/assets/images/webp/ticket-4.webp',

@@ -60,7 +60,20 @@ final class RuleDefinition
             Rule::MinLength => is_string($value) && mb_strlen($value) >= $this->parameter,
             Rule::Date => $this->parseDate($value) !== null,
             Rule::FutureDate => $this->isTodayOrLater($value),
+            Rule::Uuid => $this->isUuid($value),
         };
+    }
+
+    private function isUuid(mixed $value): bool
+    {
+        if (!is_string($value)) {
+            return false;
+        }
+
+        return (bool) preg_match(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            $value
+        );
     }
 
     private function isTodayOrLater(mixed $value): bool

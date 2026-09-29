@@ -36,8 +36,6 @@ final class CurlWebhookTransport implements WebhookTransport
         $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
         $error = curl_error($curl);
 
-        curl_close($curl);
-
         return new HttpResponse(
             $status,
             is_string($response) ? $response : null,

@@ -6,6 +6,6 @@ namespace Enums;
 
 enum TicketType: string
 {
-    case Standard = 'Standard';
-    case Premium = 'Premium';
+    case Standard = 'standard';
+    case Premium = 'premium';
 }

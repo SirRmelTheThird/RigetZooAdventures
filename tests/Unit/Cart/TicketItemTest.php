@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 final class TicketItemTest extends TestCase
 {
     private const TICKET_DATE = '2030-01-15';
-    private const TICKET_KEY = 'ticket_Standard_2030-01-15';
+    private const TICKET_KEY = 'ticket_standard_2030-01-15';
     private const ADULT_COUNT = 2;
     private const ADULT_PRICE = 19.99;
     private const CHILD_COUNT = 1;
@@ -28,12 +28,12 @@ final class TicketItemTest extends TestCase
         self::assertSame(self::TICKET_KEY, $item->key());
         self::assertSame(self::TICKET_DATE, $item->date);
 
-        $expected = round((self::ADULT_COUNT * self::ADULT_PRICE) + (self::CHILD_COUNT * self::CHILD_PRICE), 2);
+        $expected = (int) round((self::ADULT_COUNT * self::ADULT_PRICE + self::CHILD_COUNT * self::CHILD_PRICE) * 100);
         self::assertSame($expected, $item->total());
 
         $array = $item->toArray();
         self::assertSame('ticket', $array['type']);
-        self::assertSame('Standard', $array['ticketType']);
+        self::assertSame('standard', $array['ticketType']);
         self::assertSame(self::ADULT_COUNT, $array['adult']);
         self::assertSame(self::CHILD_COUNT, $array['child']);
     }

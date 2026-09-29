@@ -9,10 +9,8 @@ use Enums\ItemType;
 interface CartItem
 {
     public function key(): string;
-
     public function type(): ItemType;
-
-    public function total(): float;
-
+    public function total(): int;
+    /** @return array<string, mixed> */
     public function toArray(): array;
 }

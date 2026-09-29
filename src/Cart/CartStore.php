@@ -7,6 +7,5 @@ namespace Cart;
 interface CartStore
 {
     public function load(): Cart;
-
     public function save(Cart $cart): void;
 }

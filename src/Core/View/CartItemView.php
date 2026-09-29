@@ -6,6 +6,7 @@ namespace Core\View;
 
 final readonly class CartItemView
 {
+    /** @param list<array{label: string, value: string}> $details */
     public function __construct(
         public string $title,
         public array $details,
