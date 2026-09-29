@@ -11,7 +11,7 @@
         "test": "phpunit"
     },
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.4",
         "ext-mbstring": "*",
         "illuminate/database": "^11.0",
         "ramsey/uuid": "^4.9",
