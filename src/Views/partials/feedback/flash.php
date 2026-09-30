@@ -2,14 +2,20 @@
 
 declare(strict_types=1);
 
-use Core\Constants\SessionKey;
-use Core\Session\Session;
 use Core\View\View;
+use Services\Views\SharedViewData;
 
-$flash = Session::get(SessionKey::FLASH) ?? [];
-$success = $flash[SessionKey::SUCCESS] ?? null;
-$error = $flash[SessionKey::ERROR] ?? null;
-$errors = $flash[SessionKey::VALIDATION_ERRORS] ?? null;
+/**
+ * @var SharedViewData|null $shared
+ */
+
+if (!isset($shared) || !$shared instanceof SharedViewData) {
+    return;
+}
+
+$success = $shared->getSuccessFlash();
+$error = $shared->getErrorFlash();
+$errors = $shared->getValidationErrors();
 
 if (!$success && !$error && !$errors) {
     return;

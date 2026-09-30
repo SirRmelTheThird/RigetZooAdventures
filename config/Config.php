@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Config;
@@ -6,7 +7,7 @@ namespace Config;
 use Dotenv\Dotenv;
 
 class Config
-{    
+{
     /**
      * @var array<string, string>
     */

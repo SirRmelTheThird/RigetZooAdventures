@@ -16,7 +16,6 @@ use Content\ErrorsContent;
 use Content\StaysContent;
 use Content\EducationalContent;
 use Content\AttractionsContent;
-
 use Contracts\AuthContentInterface;
 use Contracts\CartContentInterface;
 use Contracts\CheckoutContentInterface;
@@ -29,7 +28,6 @@ use Contracts\ErrorsContentInterface;
 use Contracts\StaysContentInterface;
 use Contracts\EducationalContentInterface;
 use Contracts\AttractionsContentInterface;
-
 use RuntimeException;
 
 final class ContentFactory

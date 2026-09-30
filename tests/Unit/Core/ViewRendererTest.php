@@ -35,6 +35,16 @@ final class ViewRendererTest extends TestCase
         self::assertSame('Hello Ana', $this->views->render('hello', ['name' => 'Ana'])->body());
     }
 
+    public function testInjectsSharedViewDataWhenProvided(): void
+    {
+        file_put_contents($this->viewsDir . '/shared_test.php', 'Cart: <?= isset($shared) ? $shared->cartCount() : "none" ?>');
+        $session = new \Tests\Support\InMemorySessionStore(['cart_count' => 3]);
+        $shared = new \Services\Views\SharedViewData($session);
+        $renderer = new ViewRenderer($this->viewsDir, $shared);
+
+        self::assertSame('Cart: 3', $renderer->render('shared_test')->body());
+    }
+
     public function testDoesNotLeakOutputOnFailure(): void
     {
         $this->expectException(LogicException::class);

@@ -10,7 +10,8 @@ final class ErrorsContent implements ErrorsContentInterface
 {
     public function __construct(
         private readonly array $data
-    ) {}
+    ) {
+    }
 
     public function getServerError(): array
     {

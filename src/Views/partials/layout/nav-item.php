@@ -4,6 +4,15 @@ declare(strict_types=1);
 
 use Core\View\Format;
 
+/**
+ * @var array{
+ *     label: string,
+ *     href?: string,
+ *     active?: bool,
+ *     children?: list<array{label: string, href: string, active?: bool}>
+ * } $item
+ */
+
 ?>
 <?php if (array_key_exists('children', $item)): ?>
     <li class="rz-nav__item dropdown">

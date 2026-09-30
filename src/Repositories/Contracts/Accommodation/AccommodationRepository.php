@@ -13,4 +13,5 @@ interface AccommodationRepository
     public function findById(string $id): ?Accommodation;
     public function lockForBooking(string $id, string $startDate, string $endDate): Accommodation;
     public function getUnavailableRanges(string $accommodationId): array;
+    public function getAvailableWindows(string $accommodationId): array;
 }

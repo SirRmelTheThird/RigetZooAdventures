@@ -95,7 +95,7 @@ ob_start(); ?>
             ],
             'actionsHtml' => $actionsHtml,
         ]);
-        ?>
+?>
     </div>
 </div>
 

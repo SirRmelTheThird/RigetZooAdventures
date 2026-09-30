@@ -22,6 +22,8 @@ class Accommodation extends Model
         'max_guests',
         'available_rooms',
         'location',
+        'available_from',
+        'available_until',
         'image_url',
     ];
 
@@ -35,6 +37,8 @@ class Accommodation extends Model
             'price_per_night' => 'decimal:2',
             'max_guests' => 'integer',
             'available_rooms' => 'integer',
+            'available_from' => 'date:Y-m-d',
+            'available_until' => 'date:Y-m-d',
         ];
     }
 

@@ -13,7 +13,7 @@ final class RewardServiceTest extends TestCase
 {
     public function testPointsForMapsPoundsToRoundedPence(): void
     {
-        $service = new RewardService(new class implements RewardPointRepository {
+        $service = new RewardService(new class () implements RewardPointRepository {
             public function create(array $data): RewardPoint
             {
                 return new RewardPoint($data);

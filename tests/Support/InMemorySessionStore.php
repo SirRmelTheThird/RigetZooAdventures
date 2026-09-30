@@ -98,6 +98,11 @@ final class InMemorySessionStore implements SessionStore
         // No-op for in-memory store
     }
 
+    public function getCartCount(): int
+    {
+        return (int) ($this->data['cart_count'] ?? 0);
+    }
+
     // Additional test helpers
     public function flashInfo(string $message): void
     {

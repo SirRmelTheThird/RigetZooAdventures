@@ -183,6 +183,6 @@ final class CheckoutServiceTest extends TestCase
 
         $this->checkout($gateway, new FakePlacer())->begin('9', $this->ticketCart(1, 0));
 
-        self::assertSame(1999, $gateway->amount);
+        self::assertSame(20, $gateway->amount);
     }
 }

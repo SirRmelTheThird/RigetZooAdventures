@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 use Core\View\Navigation;
 use Core\View\View;
-use Core\Session\Session;
+use Services\Views\SharedViewData;
 
 require __DIR__ . '/head.php';
 
 $navItems = Navigation::resolve($site->getNav(), Navigation::pathOf($_SERVER['REQUEST_URI']));
 
-$isLoggedIn = Session::isLoggedIn();
-$username = (string) (Session::getUsername() ?? '');
+/** @var SharedViewData $shared */
+$isLoggedIn = $shared->isLoggedIn();
+$username = (string) ($shared->username() ?? '');
+$cartCount = $shared->cartCount();
 ?>
 <body>
     <a class="rz-skip" href="#main">Skip to content</a>
@@ -27,4 +29,4 @@ $username = (string) (Session::getUsername() ?? '');
 ?>
 
     <main id="main" class="rz-main">
-        <?php View::partial('feedback/flash'); ?>
+        <?php View::partial('feedback/flash', ['shared' => $shared ?? null]); ?>

@@ -10,7 +10,8 @@ final class SiteContent implements SiteContentInterface
 {
     public function __construct(
         private readonly array $data
-    ) {}
+    ) {
+    }
 
     public function getName(): string
     {

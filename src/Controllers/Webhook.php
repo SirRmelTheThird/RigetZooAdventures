@@ -11,7 +11,9 @@ use Services\Checkout\PaymentWebhookHandler;
 
 final class Webhook
 {
-    public function __construct(private readonly PaymentWebhookHandler $webhooks) {}
+    public function __construct(private readonly PaymentWebhookHandler $webhooks)
+    {
+    }
 
     public function handle(Request $request): Response
     {

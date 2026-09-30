@@ -21,7 +21,7 @@ final readonly class TicketPricing
 
         $prices = [];
         foreach ($tickets as $ticket) {
-        $category = TicketCategory::tryFrom(strtolower(trim((string) $ticket->category)));
+            $category = TicketCategory::tryFrom(strtolower(trim((string) $ticket->category)));
             if ($category === null) {
                 continue;
             }

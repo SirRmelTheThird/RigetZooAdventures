@@ -137,4 +137,9 @@ final class AccommodationService
     {
         return (int) (new DateTimeImmutable($startDate))->diff(new DateTimeImmutable($endDate))->days;
     }
+
+    public function availableWindows(string $accommodationId): array
+    {
+        return $this->accommodations->getAvailableWindows($accommodationId);
+    }
 }

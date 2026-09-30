@@ -55,7 +55,7 @@ final class PaymentWebhookTest extends TestCase
             new DiscordEmbedFactory(),
             new DiscordWebhookClient($logger, $transport, 'https://example.invalid/webhook', null),
         );
-        $processed = new class implements WebhookEventRepository {
+        $processed = new class () implements WebhookEventRepository {
             /** @var array<string, bool> */
             private array $events = [];
 

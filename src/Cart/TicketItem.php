@@ -48,7 +48,7 @@ final class TicketItem implements CartItem
 
     public function total(): int
     {
-        return (int) round($this->adult * $this->adultPrice * 100 + $this->child * $this->childPrice * 100);
+        return (int) round($this->adult * $this->adultPrice + $this->child * $this->childPrice);
     }
 
     /** @return array<string, mixed> */

@@ -51,7 +51,7 @@ $items = array_map([CartItemPresenter::class, 'present'], $cart['items']);
             'labels' => $content->getSummary(),
             'total' => (float) $cart['total'],
         ]);
-        ?>
+?>
     </div>
 </div>
 

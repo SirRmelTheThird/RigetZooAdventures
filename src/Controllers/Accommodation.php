@@ -33,6 +33,7 @@ final class Accommodation
             $withUnavailable[] = [
                 'accommodation' => $a,
                 'unavailable' => $this->accommodations->unavailableRanges((string) $a->id),
+                'availableWindows' => $this->accommodations->availableWindows((string) $a->id),
             ];
         }
         return $this->views->render('accommodations/index', ['items' => $withUnavailable]);

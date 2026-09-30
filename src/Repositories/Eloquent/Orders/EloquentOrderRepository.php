@@ -31,9 +31,9 @@ final class EloquentOrderRepository implements OrderRepository
         return Order::create($data);
     }
 
-  public function nextOrderNumber(string $customerId): int
-  {
-      return (int) Order::where('customer_id', $customerId)
-          ->max('order_number') + 1;
-  }
+    public function nextOrderNumber(string $customerId): int
+    {
+        return (int) Order::where('customer_id', $customerId)
+            ->max('order_number') + 1;
+    }
 }

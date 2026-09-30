@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use Core\View\Format;
 use Core\View\View;
+use Services\Views\SharedViewData;
 
 /**
  * @var bool $wide
  * @var array{brand_line: string, title: string, lede: string} $page
  * @var array{back: array{href: string, label: string}, icon: string} $auth
+ * @var SharedViewData|null $shared
  */
 
 ?>
@@ -27,4 +29,4 @@ use Core\View\View;
         <h2 id="auth-title"><?= Format::e($page['title']) ?></h2>
         <p class="rz-muted rz-auth__lede"><?= Format::e($page['lede']) ?></p>
 
-        <?php View::partial('feedback/flash'); ?>
+        <?php View::partial('feedback/flash', ['shared' => $shared ?? null]); ?>

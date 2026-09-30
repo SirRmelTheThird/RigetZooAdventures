@@ -21,9 +21,6 @@ Thumbs.db
 # Claude
 .claude/
 
-# Plans
-plans/
-
 # Coding standards
 CODING_STANDARDS.md
 CLAUDE.md

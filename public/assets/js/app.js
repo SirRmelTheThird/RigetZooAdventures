@@ -96,12 +96,29 @@
 
     function initDateRanges() {
         const DAY_MS = 24 * 60 * 60 * 1000;
+        const hasFlatpickr = typeof window.flatpickr === 'function';
+
+        if (!hasFlatpickr) {
+          console.error(
+              'Flatpickr is not loaded. Check that flatpickr.min.js loads before your application script.'
+          );
+        }
+
+        const formatDateObj = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        };
 
         function parseUnavailable(input) {
             const raw = input.getAttribute('data-unavailable');
+
             if (!raw) {
                 return [];
             }
+
             try {
                 return JSON.parse(raw);
             } catch {
@@ -109,34 +126,119 @@
             }
         }
 
-        function isUnavailable(dateStr, ranges) {
-            for (let i = 0; i < ranges.length; i++) {
-                if (dateStr >= ranges[i].start_date && dateStr < ranges[i].end_date) {
-                    return true;
-                }
-            }
-            return false;
+      function parseAvailableWindows(form) {
+          const raw = form.getAttribute('data-available-windows');
+
+          if (!raw) {
+              console.error('Missing data-available-windows:', form);
+              return null;
+          }
+
+          try {
+              const windows = JSON.parse(raw);
+
+              if (!Array.isArray(windows) || windows.length === 0) {
+                  console.error('No availability windows found:', windows);
+                  return null;
+              }
+
+              const parsedWindows = windows
+                  .map((window) => ({
+                      start_date: window.start ?? window.start_date,
+                      end_date: window.end ?? window.end_date
+                  }))
+                  .filter((window) =>
+                      window.start_date &&
+                      window.end_date &&
+                      window.start_date <= window.end_date
+                  );
+
+              if (parsedWindows.length === 0) {
+                  console.error('Invalid availability windows:', windows);
+                  return null;
+              }
+
+              return parsedWindows;
+
+          } catch (error) {
+              console.error('Failed to parse availability windows:', error);
+              return null;
+          }
+      }
+
+        function isOutsideAvailableWindows(dateStr, windows) {
+            return !windows.some((window) =>
+                dateStr >= window.start_date &&
+                dateStr <= window.end_date
+            );
+        }
+
+        function isUnavailableForCheckIn(dateStr, ranges) {
+            return ranges.some((range) =>
+                dateStr >= range.start_date &&
+                dateStr < range.end_date
+            );
+        }
+
+        function isUnavailableForCheckOut(dateStr, ranges) {
+            return ranges.some((range) =>
+                dateStr > range.start_date &&
+                dateStr <= range.end_date
+            );
+        }
+
+        function findUnavailableInfo(dateStr, ranges) {
+            return ranges.find((range) =>
+                dateStr >= range.start_date &&
+                dateStr < range.end_date
+            ) || null;
         }
 
         function rangeOverlapsUnavailable(startStr, endStr, ranges) {
-            for (let i = 0; i < ranges.length; i++) {
-                if (startStr < ranges[i].end_date && endStr > ranges[i].start_date) {
-                    return true;
-                }
-            }
-            return false;
+            return ranges.some((range) =>
+                startStr < range.end_date &&
+                endStr > range.start_date
+            );
+        }
+
+        function isStayOutsideAvailableWindows(
+            startStr,
+            endStr,
+            windows
+        ) {
+            return !windows.some((window) =>
+                startStr >= window.start_date &&
+                startStr < window.end_date &&
+                endStr > startStr &&
+                endStr <= window.end_date
+            );
         }
 
         function findNextUnavailableStart(startStr, ranges) {
             let nextStart = null;
-            for (let i = 0; i < ranges.length; i++) {
-                if (ranges[i].start_date >= startStr) {
-                    if (nextStart === null || ranges[i].start_date < nextStart) {
-                        nextStart = ranges[i].start_date;
-                    }
+
+            ranges.forEach((range) => {
+                if (
+                    range.start_date >= startStr &&
+                    (
+                        nextStart === null ||
+                        range.start_date < nextStart
+                    )
+                ) {
+                    nextStart = range.start_date;
                 }
-            }
+            });
+
             return nextStart;
+        }
+
+        function findAvailableWindowEnd(startStr, windows) {
+            const window = windows.find((item) =>
+                startStr >= item.start_date &&
+                startStr < item.end_date
+            );
+
+            return window ? window.end_date : null;
         }
 
         function deselectAndWarn(input, message) {
@@ -149,70 +251,387 @@
         document.querySelectorAll('[data-date-range]').forEach((form) => {
             const start = form.querySelector('[data-range-start]');
             const end = form.querySelector('[data-range-end]');
+
+            if (!start || !end) {
+                return;
+            }
+
             const unavailable = parseUnavailable(start);
-            const msgDateUnavailable = form.dataset.msgDateUnavailable;
-            const msgRangeUnavailable = form.dataset.msgRangeUnavailable;
+            const availableWindows = parseAvailableWindows(form);
+
+            if (availableWindows === null) {
+                return;
+            }
+
+            const msgDateUnavailable =
+                form.dataset.msgDateUnavailable ||
+                'Date is unavailable.';
+
+            const msgRangeUnavailable =
+                form.dataset.msgRangeUnavailable ||
+                'Selected date range is unavailable.';
+
             const initialEndMax = end.getAttribute('max') || '';
 
-            start.addEventListener('change', () => {
-                if (!start.value) {
-                    end.removeAttribute('min');
+            const isBlockedCheckIn = (dateStr) =>
+                isOutsideAvailableWindows(dateStr, availableWindows) ||
+                isUnavailableForCheckIn(dateStr, unavailable);
+
+            const isBlockedCheckOut = (dateStr) =>
+                isOutsideAvailableWindows(dateStr, availableWindows) ||
+                isUnavailableForCheckOut(dateStr, unavailable);
+
+            const decorateUnavailableDay = (dayElem) => {
+                const dateStr = formatDateObj(dayElem.dateObj);
+
+                const info = findUnavailableInfo(
+                    dateStr,
+                    unavailable
+                );
+
+                if (isOutsideAvailableWindows(dateStr, availableWindows)) {
+                    dayElem.classList.add('rz-day--unavailable');
+                    dayElem.title = 'Outside available booking dates.';
+                } else if (info) {
+                    dayElem.classList.add('rz-day--unavailable');
+
+                    dayElem.title = info.reason
+                        ? `Unavailable: ${info.reason}`
+                        : 'Unavailable';
+                }
+            };
+
+            if (hasFlatpickr) {
+                let endPicker = null;
+
+                const startPicker = window.flatpickr(start, {
+                    dateFormat: 'Y-m-d',
+
+                    minDate: start.getAttribute('min') || 'today',
+
+                    maxDate: start.getAttribute('max') || undefined,
+
+                    disable: [
+                        (date) => isBlockedCheckIn(
+                            formatDateObj(date)
+                        )
+                    ],
+
+                    onDayCreate: (dObj, dStr, fp, dayElem) => {
+                        decorateUnavailableDay(dayElem);
+                    },
+
+                    onChange: (selectedDates, dateStr) => {
+                        if (!dateStr || selectedDates.length === 0) {
+                            if (endPicker) {
+                                endPicker.clear();
+
+                                endPicker.set(
+                                    'minDate',
+                                    end.getAttribute('min') ||
+                                        new Date(Date.now() + DAY_MS)
+                                );
+
+                                endPicker.set(
+                                    'maxDate',
+                                    initialEndMax || undefined
+                                );
+                            }
+
+                            return;
+                        }
+
+                        const startDate = selectedDates[0];
+
+                        const minEnd = new Date(
+                            startDate.getTime() + DAY_MS
+                        );
+
+                        if (!endPicker) {
+                            return;
+                        }
+
+                        endPicker.clear();
+
+                        endPicker.set('minDate', minEnd);
+
+                        const windowEnd = findAvailableWindowEnd(
+                            dateStr,
+                            availableWindows
+                        );
+
+                        const nextBlocked = findNextUnavailableStart(
+                            dateStr,
+                            unavailable
+                        );
+
+                        let maxEnd = windowEnd;
+
+                        if (
+                            nextBlocked !== null &&
+                            (
+                                maxEnd === null ||
+                                nextBlocked < maxEnd
+                            )
+                        ) {
+                            maxEnd = nextBlocked;
+                        }
+
+                        if (initialEndMax) {
+                            maxEnd = maxEnd === null
+                                ? initialEndMax
+                                : (
+                                    initialEndMax < maxEnd
+                                        ? initialEndMax
+                                        : maxEnd
+                                );
+                        }
+
+                        endPicker.set(
+                            'maxDate',
+                            maxEnd || undefined
+                        );
+
+                        endPicker.open();
+                    }
+                });
+
+                endPicker = window.flatpickr(end, {
+                    dateFormat: 'Y-m-d',
+
+                    minDate: end.getAttribute('min') ||
+                        new Date(Date.now() + DAY_MS),
+
+                    maxDate: end.getAttribute('max') || undefined,
+
+                    disable: [
+                        (date) => isBlockedCheckOut(
+                            formatDateObj(date)
+                        )
+                    ],
+
+                    onDayCreate: (dObj, dStr, fp, dayElem) => {
+                        decorateUnavailableDay(dayElem);
+                    },
+
+                    onChange: (selectedDates, dateStr) => {
+                        if (
+                            !dateStr ||
+                            selectedDates.length === 0 ||
+                            startPicker.selectedDates.length === 0
+                        ) {
+                            return;
+                        }
+
+                        const startStr = formatDateObj(
+                            startPicker.selectedDates[0]
+                        );
+
+                        const invalidWindow =
+                            isStayOutsideAvailableWindows(
+                                startStr,
+                                dateStr,
+                                availableWindows
+                            );
+
+                        const invalidReservation =
+                            rangeOverlapsUnavailable(
+                                startStr,
+                                dateStr,
+                                unavailable
+                            );
+
+                        if (invalidWindow || invalidReservation) {
+                            endPicker.clear();
+
+                            deselectAndWarn(
+                                end,
+                                msgRangeUnavailable
+                            );
+                        }
+                    }
+                });
+            } else {
+                start.addEventListener('change', () => {
+                    if (!start.value) {
+                        end.removeAttribute('min');
+
+                        if (initialEndMax) {
+                            end.max = initialEndMax;
+                        } else {
+                            end.removeAttribute('max');
+                        }
+
+                        return;
+                    }
+
+                    if (isBlockedCheckIn(start.value)) {
+                        deselectAndWarn(
+                            start,
+                            msgDateUnavailable
+                        );
+
+                        return;
+                    }
+
+                    const startDate = new Date(
+                        `${start.value}T00:00:00`
+                    );
+
+                    const minEnd = formatDateObj(
+                        new Date(startDate.getTime() + DAY_MS)
+                    );
+
+                    end.min = minEnd;
+
+                    const windowEnd = findAvailableWindowEnd(
+                        start.value,
+                        availableWindows
+                    );
+
+                    const nextBlocked = findNextUnavailableStart(
+                        start.value,
+                        unavailable
+                    );
+
+                    let maxEnd = windowEnd;
+
+                    if (
+                        nextBlocked !== null &&
+                        (
+                            maxEnd === null ||
+                            nextBlocked < maxEnd
+                        )
+                    ) {
+                        maxEnd = nextBlocked;
+                    }
+
                     if (initialEndMax) {
-                        end.max = initialEndMax;
+                        maxEnd = maxEnd === null
+                            ? initialEndMax
+                            : (
+                                initialEndMax < maxEnd
+                                    ? initialEndMax
+                                    : maxEnd
+                            );
+                    }
+
+                    if (maxEnd) {
+                        end.max = maxEnd;
                     } else {
                         end.removeAttribute('max');
                     }
-                    return;
-                }
 
-                if (isUnavailable(start.value, unavailable)) {
-                    deselectAndWarn(start, msgDateUnavailable);
-                    return;
-                }
+                    if (end.value) {
+                        const invalidWindow =
+                            isStayOutsideAvailableWindows(
+                                start.value,
+                                end.value,
+                                availableWindows
+                            );
 
-                const minEnd = new Date(new Date(start.value).getTime() + DAY_MS).toISOString().slice(0, 10);
-                end.min = minEnd;
+                        const invalidReservation =
+                            rangeOverlapsUnavailable(
+                                start.value,
+                                end.value,
+                                unavailable
+                            );
 
-                const nextBlocked = findNextUnavailableStart(start.value, unavailable);
-                if (nextBlocked !== null) {
-                    end.max = nextBlocked;
-                } else if (initialEndMax) {
-                    end.max = initialEndMax;
-                }
-
-                if (end.value) {
-                    if (end.value < minEnd || (end.max && end.value > end.max) || rangeOverlapsUnavailable(start.value, end.value, unavailable)) {
-                        deselectAndWarn(end, msgRangeUnavailable);
+                        if (
+                            end.value < minEnd ||
+                            invalidWindow ||
+                            invalidReservation
+                        ) {
+                            deselectAndWarn(
+                                end,
+                                msgRangeUnavailable
+                            );
+                        }
                     }
-                }
-            });
+                });
 
-            end.addEventListener('change', () => {
-                if (!end.value) {
-                    return;
-                }
+                end.addEventListener('change', () => {
+                    if (!end.value) {
+                        return;
+                    }
 
-                if (start.value && rangeOverlapsUnavailable(start.value, end.value, unavailable)) {
-                    deselectAndWarn(end, msgRangeUnavailable);
-                    return;
-                }
+                    if (isBlockedCheckOut(end.value)) {
+                        deselectAndWarn(
+                            end,
+                            msgDateUnavailable
+                        );
 
-                if (isUnavailable(end.value, unavailable)) {
-                    deselectAndWarn(end, msgDateUnavailable);
-                }
-            });
+                        return;
+                    }
+
+                    if (!start.value) {
+                        return;
+                    }
+
+                    const invalidWindow =
+                        isStayOutsideAvailableWindows(
+                            start.value,
+                            end.value,
+                            availableWindows
+                        );
+
+                    const invalidReservation =
+                        rangeOverlapsUnavailable(
+                            start.value,
+                            end.value,
+                            unavailable
+                        );
+
+                    if (invalidWindow || invalidReservation) {
+                        deselectAndWarn(
+                            end,
+                            msgRangeUnavailable
+                        );
+                    }
+                });
+            }
 
             form.addEventListener('submit', (event) => {
                 if (!start.value || !end.value) {
                     return;
                 }
 
-                if (rangeOverlapsUnavailable(start.value, end.value, unavailable)) {
+                const invalidWindow =
+                    isStayOutsideAvailableWindows(
+                        start.value,
+                        end.value,
+                        availableWindows
+                    );
+
+                const invalidReservation =
+                    rangeOverlapsUnavailable(
+                        start.value,
+                        end.value,
+                        unavailable
+                    );
+
+                if (invalidWindow || invalidReservation) {
                     event.preventDefault();
-                    deselectAndWarn(end, msgRangeUnavailable);
+
+                    deselectAndWarn(
+                        end,
+                        msgRangeUnavailable
+                    );
                 }
             });
         });
+
+        if (hasFlatpickr) {
+            document.querySelectorAll(
+                'input[type="date"]:not([data-range-start]):not([data-range-end])'
+            ).forEach((input) => {
+                window.flatpickr(input, {
+                    dateFormat: 'Y-m-d',
+                    minDate: input.getAttribute('min') || 'today',
+                    maxDate: input.getAttribute('max') || undefined
+                });
+            });
+        }
     }
 
     function initConfirmations() {

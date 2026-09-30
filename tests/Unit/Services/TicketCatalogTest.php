@@ -40,7 +40,7 @@ final class TicketCatalogTest extends TestCase
 
     public function testPriceForRaisesNotFoundWhenCatalogHasNoTicket(): void
     {
-        $catalog = new class implements CatalogRepository {
+        $catalog = new class () implements CatalogRepository {
             public function priceFor(TicketType $type, TicketCategory $category): ?Ticket
             {
                 return null;

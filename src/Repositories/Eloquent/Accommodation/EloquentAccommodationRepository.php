@@ -40,4 +40,19 @@ final class EloquentAccommodationRepository implements AccommodationRepository
             ])
             ->toArray();
     }
+
+    public function getAvailableWindows(string $accommodationId): array
+    {
+        return Capsule::connection()
+            ->table('accommodation_availabilities')
+            ->where('accommodation_id', $accommodationId)
+            ->where('is_available', true)
+            ->orderBy('start_date')
+            ->get(['start_date', 'end_date'])
+            ->map(static fn ($range): array => [
+                'start' => (string) $range->start_date,
+                'end' => (string) $range->end_date,
+            ])
+            ->all();
+    }
 }

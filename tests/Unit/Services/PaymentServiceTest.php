@@ -70,7 +70,7 @@ final class PaymentServiceTest extends TestCase
             $gateway,
             $logger,
             $discord,
-            new class implements WebhookEventRepository {
+            new class () implements WebhookEventRepository {
                 public function markProcessed(string $eventId): bool
                 {
                     static $seen = [];
@@ -137,7 +137,7 @@ final class PaymentServiceTest extends TestCase
             $gateway,
             $logger,
             $discord,
-            new class implements WebhookEventRepository {
+            new class () implements WebhookEventRepository {
                 public function markProcessed(string $eventId): bool
                 {
                     static $seen = [];
@@ -203,7 +203,7 @@ final class PaymentServiceTest extends TestCase
             $webhookClient,
         );
 
-        $processed = new class implements WebhookEventRepository {
+        $processed = new class () implements WebhookEventRepository {
             /** @var array<string, bool> */
             private array $events = [];
 
@@ -252,7 +252,7 @@ final class PaymentServiceTest extends TestCase
             $webhookClient,
         );
 
-        $handler = new PaymentWebhookHandler($gateway, $logger, $discord, new class implements WebhookEventRepository {
+        $handler = new PaymentWebhookHandler($gateway, $logger, $discord, new class () implements WebhookEventRepository {
             public function markProcessed(string $eventId): bool
             {
                 return true;

@@ -7,12 +7,14 @@ namespace Core\View;
 use Core\Http\HttpStatus;
 use Core\Http\Response;
 use LogicException;
+use Services\Views\SharedViewData;
 use Throwable;
 
 final class ViewRenderer
 {
     public function __construct(
         private readonly string $viewsPath,
+        private readonly ?SharedViewData $shared = null,
     ) {
     }
 
@@ -28,7 +30,11 @@ final class ViewRenderer
         if (!is_file($path)) {
             throw new LogicException("View not found: {$view}");
         }
-        
+
+        if ($this->shared !== null) {
+            $data += ['shared' => $this->shared];
+        }
+
         return Response::html(self::capture($path, $data), $status);
     }
 

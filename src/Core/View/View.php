@@ -57,7 +57,7 @@ final class View
         self::$contentCache[$interface] = $objectContent;
 
         return $objectContent;
-}
+    }
 
     private static function resolve(string $directory, string $name): string
     {

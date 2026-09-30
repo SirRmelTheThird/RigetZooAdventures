@@ -49,7 +49,7 @@ final class AccommodationItem implements CartItem
 
     public function total(): int
     {
-        return (int) round($this->nights * $this->pricePerNight * 100);
+        return (int) round($this->nights * $this->pricePerNight);
     }
 
     /** @return array<string, mixed> */

@@ -6,7 +6,7 @@ use Core\View\View;
 use Contracts\StaysContentInterface;
 
 /**
- * @var array<int, array{accommodation: object, unavailable: array}> $items
+ * @var array<int, array{accommodation: object, unavailable: array, availableWindows: array}> $items
  */
 
 $pageTitle = 'Stays';
@@ -27,6 +27,7 @@ $content = View::content(StaysContentInterface::class);
             <?php View::partial('catalog/stay-card', [
                 'accommodation' => $item['accommodation'],
                 'unavailable' => $item['unavailable'],
+                'availableWindows' => $item['availableWindows'],
                 'copy' => $content->getCard(),
             ]); ?>
         <?php endforeach; ?>

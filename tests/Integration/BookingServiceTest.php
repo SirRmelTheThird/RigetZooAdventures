@@ -23,6 +23,7 @@ use Services\Tickets\BookingService;
 use Services\Tickets\TicketInventory;
 use Tests\Support\MemoryLogWriter;
 use Tests\Support\InMemoryRewardPointRepository;
+use Models\Accommodations\Accommodation;
 
 final class BookingServiceTest extends TestCase
 {
@@ -81,7 +82,7 @@ final class BookingServiceTest extends TestCase
 
     private function createOrderWriter(OrderRepository $repository): OrderWriter
     {
-        $orderItems = new class implements OrderItemRepository {
+        $orderItems = new class () implements OrderItemRepository {
             public function createTicketLine(
                 string $orderId,
                 string $ticketId,
@@ -101,7 +102,7 @@ final class BookingServiceTest extends TestCase
             }
         };
 
-        $ticketRepository = new class implements TicketRepository {
+        $ticketRepository = new class () implements TicketRepository {
             public function findById(string $ticketId): ?Ticket
             {
                 return null;
@@ -132,20 +133,20 @@ final class BookingServiceTest extends TestCase
             }
         };
 
-        $accommodationRepository = new class implements AccommodationRepository {
+        $accommodationRepository = new class () implements AccommodationRepository {
             public function all(): Collection
             {
                 return new Collection();
             }
 
-            public function findById(string $id): ?\Models\Accommodations\Accommodation
+            public function findById(string $id): ?Accommodation
             {
                 return null;
             }
 
-            public function lockForBooking(string $id, string $startDate, string $endDate): \Models\Accommodations\Accommodation
+            public function lockForBooking(string $id, string $startDate, string $endDate): Accommodation
             {
-                return new \Models\Accommodations\Accommodation([
+                return new Accommodation([
                     'id' => $id,
                     'name' => 'Lodge',
                     'price_per_night' => 100.00,
@@ -155,6 +156,11 @@ final class BookingServiceTest extends TestCase
             }
 
             public function getUnavailableRanges(string $accommodationId): array
+            {
+                return [];
+            }
+
+            public function getAvailableWindows(string $accommodationId): array
             {
                 return [];
             }

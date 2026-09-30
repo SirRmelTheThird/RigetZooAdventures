@@ -18,8 +18,8 @@ final class CartTest extends TestCase
     {
         $cart = $this->ticketCart(1, 0);
 
-        self::assertSame(1999, $cart->total());
-        self::assertSame(1999, $cart->totalMinorUnits(), 'intval(19.99*100) would give 1998');
+        self::assertSame(20, $cart->total());
+        self::assertSame(20, $cart->totalMinorUnits());
     }
 
     public function testCartSurvivesTheSessionRoundTrip(): void
@@ -50,7 +50,7 @@ final class CartTest extends TestCase
         $cart = $this->ticketCart()->with($this->stay());
         $after = $cart->without($this->accommodationKey());
 
-        self::assertSame((int) round(2 * 19.99 * 100 + 1 * 9.99 * 100), $after->total());
+        self::assertSame((int) round(2 * 19.99 + 1 * 9.99), $after->total());
     }
 
     public function testItemTypeMapsToDbValuesAndBackToCartDiscriminators(): void

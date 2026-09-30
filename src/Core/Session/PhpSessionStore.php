@@ -80,4 +80,9 @@ final class PhpSessionStore implements SessionStore
     {
         Session::regenerate();
     }
+
+    public function getCartCount(): int
+    {
+        return Session::getCartCount();
+    }
 }

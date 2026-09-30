@@ -28,7 +28,7 @@ final class TicketItemTest extends TestCase
         self::assertSame(self::TICKET_KEY, $item->key());
         self::assertSame(self::TICKET_DATE, $item->date);
 
-        $expected = (int) round((self::ADULT_COUNT * self::ADULT_PRICE + self::CHILD_COUNT * self::CHILD_PRICE) * 100);
+        $expected = (int) round((self::ADULT_COUNT * self::ADULT_PRICE + self::CHILD_COUNT * self::CHILD_PRICE));
         self::assertSame($expected, $item->total());
 
         $array = $item->toArray();

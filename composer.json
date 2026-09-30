@@ -20,11 +20,31 @@
     },
     "autoload": {
         "psr-4": {
-            "RigetZooAdventures\\": "src/",
+            "Bootstrap\\": "src/Bootstrap/",
+            "Controllers\\": "src/Controllers/",
+            "Contracts\\": "src/Contracts/",
+            "Content\\": "src/Content/",
+            "Cart\\": "src/Cart/",
             "Config\\": "config/",
+            "Core\\": "src/Core/",
+            "Enums\\": "src/Enums/",
+            "Factories\\": "src/Factories/",
+            "DTOs\\": "src/DTOs/",
+            "Exceptions\\": "src/Exceptions/",
+            "Middleware\\": "src/Middleware/",
+            "Models\\": "src/Models/",
+            "Payments\\": "src/Payments/",
+            "Repositories\\": "src/Repositories/",
+            "Requests\\": "src/Requests/",
+            "Services\\": "src/Services/",
+            "Support\\": "src/Support/",
             "Database\\Migrations\\": "database/migrations/",
-            "Database\\Seeders\\": "database/seeders/",
-            "Tests\\Support\\": "tests/Support/"
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
         }
     },
     "config": {

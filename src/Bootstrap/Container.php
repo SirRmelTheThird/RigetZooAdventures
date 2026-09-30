@@ -76,6 +76,7 @@ use Services\Orders\OrderWriter;
 use Services\Tickets\BookingService;
 use Services\Tickets\TicketCatalog;
 use Services\Tickets\TicketInventory;
+use Services\Views\SharedViewData;
 use Stripe\StripeClient;
 
 final class Container
@@ -89,8 +90,7 @@ final class Container
     public function __construct(
         private readonly string $basePath,
         private readonly ?ConnectionInterface $database = null,
-    )
-    {
+    ) {
     }
 
     public function databaseConnection(): ?ConnectionInterface
@@ -198,7 +198,18 @@ final class Container
         return $this->once(
             ViewRenderer::class,
             fn (): ViewRenderer => new ViewRenderer(
-                $this->basePath . '/src/Views'
+                $this->basePath . '/src/Views',
+                $this->sharedViewData()
+            )
+        );
+    }
+
+    private function sharedViewData(): SharedViewData
+    {
+        return $this->once(
+            SharedViewData::class,
+            fn (): SharedViewData => new SharedViewData(
+                $this->phpSessionStore()
             )
         );
     }

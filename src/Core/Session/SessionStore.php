@@ -35,4 +35,6 @@ interface SessionStore
     public function invalidate(): void;
 
     public function regenerate(): void;
+
+    public function getCartCount(): int;
 }

@@ -6,6 +6,7 @@ namespace Core\Session;
 
 use Core\Constants\SessionKey;
 use Exceptions\Auth\AuthException;
+use Enums\TicketCategory;
 
 final class Session
 {
@@ -163,5 +164,23 @@ final class Session
         if (time() - (int) $_SESSION[SessionKey::LAST_REGENERATION] >= self::LIFETIME_SECONDS) {
             self::regenerate();
         }
+    }
+
+    public static function getCartCount(): int
+    {
+        $cart = self::get(SessionKey::CART, ['items' => []]);
+        $count = 0;
+
+        foreach ($cart['items'] ?? [] as $item) {
+            $type = $item['type'] ?? '';
+
+            if ($type === 'ticket') {
+                $count += (int) ($item[TicketCategory::Adult] ?? 0) + (int) ($item[TicketCategory::Child] ?? 0);
+            } else {
+                $count += 1;
+            }
+        }
+
+        return $count;
     }
 }

@@ -14,7 +14,8 @@ final class DbSettings
         public readonly string $database = 'rzet',
         public readonly string $username = 'root',
         public readonly string $password = '',
-    ) {}
+    ) {
+    }
 
     public static function fromEnv(): self
     {
