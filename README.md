@@ -8,15 +8,7 @@
 [![Composer](https://img.shields.io/badge/Composer-Dependencies-885630.svg?style=for-the-badge\&logo=composer\&logoColor=white)](https://getcomposer.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-<video
-    src="https://github.com/SirRmelTheThird/RigetZooAdventures/raw/refs/heads/main/docs/demo.mp4"
-    controls
-    autoplay
-    muted
-    loop
-    playsinline
-    width="100%"
->
+https://github.com/user-attachments/assets/d6c7d951-cfd1-42a1-8d10-4c40749492b1
 
 </div>
 
