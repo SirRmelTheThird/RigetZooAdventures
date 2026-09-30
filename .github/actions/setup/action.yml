@@ -7,7 +7,7 @@ runs:
     - name: 🐘 Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: "8.4"
+        php-version: "8.5"
         extensions: mbstring, pdo_mysql
         coverage: none
 
@@ -17,7 +17,7 @@ runs:
       run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
     - name: 💾 Cache Composer packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ steps.composer-cache.outputs.dir }}
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
