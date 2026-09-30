@@ -19,7 +19,7 @@ final class Session
     private const CART_ITEMS_KEY = 'items';
     private const ITEM_TYPE_KEY = 'type';
     private const ITEM_TYPE_TICKET = 'ticket';
-    
+
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {

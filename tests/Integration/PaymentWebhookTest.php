@@ -56,19 +56,19 @@ final class PaymentWebhookTest extends TestCase
             new DiscordWebhookClient($logger, $transport, 'https://example.invalid/webhook', null),
         );
         $processed = new class () implements WebhookEventRepository {
-              /** @var array<string, bool> */
-              private array $events = [];
+            /** @var array<string, bool> */
+            private array $events = [];
 
-              public function isProcessed(string $eventId): bool
-              {
-                  return isset($this->events[$eventId]);
-              }
+            public function isProcessed(string $eventId): bool
+            {
+                return isset($this->events[$eventId]);
+            }
 
-              public function markProcessed(string $eventId): void
-              {
-                  $this->events[$eventId] = true;
-              }
-          };
+            public function markProcessed(string $eventId): void
+            {
+                $this->events[$eventId] = true;
+            }
+        };
         $handler = new PaymentWebhookHandler($gateway, $logger, $discord, $processed);
 
         $handler->handle($payload, 'sig');

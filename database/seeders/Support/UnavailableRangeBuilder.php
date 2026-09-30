@@ -16,7 +16,8 @@ class UnavailableRangeBuilder
      * @param array<int, array{start: string, end: string}> $windows
      * @return array<int, array{start_date: string, end_date: string, reason: string}>
      */
-    public function build(array $windows, ?string $availableFrom,?string $availableUntil): array {
+    public function build(array $windows, ?string $availableFrom, ?string $availableUntil): array
+    {
         return array_merge(
             $this->seasonGapBefore($availableFrom),
             $this->gapsBetween($windows),

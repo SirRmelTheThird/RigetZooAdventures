@@ -52,7 +52,8 @@ class AccommodationSeeder
         return count($windows);
     }
 
-    private function createUnavailableWindows(string $accommodationId, array $windows, ?string $availableFrom, ?string $availableUntil): int {
+    private function createUnavailableWindows(string $accommodationId, array $windows, ?string $availableFrom, ?string $availableUntil): int
+    {
         $ranges = (new UnavailableRangeBuilder())
             ->build($windows, $availableFrom, $availableUntil);
 
