@@ -11,16 +11,21 @@ use Repositories\Contracts\Payments\WebhookEventRepository;
 
 final class EloquentWebhookEventRepository implements WebhookEventRepository
 {
-    public function markProcessed(string $eventId): bool
+    public function isProcessed(string $eventId): bool
+    {
+        return ProcessedWebhookEvent::query()
+            ->where('event_id', $eventId)
+            ->exists();
+    }
+
+    public function markProcessed(string $eventId): void
     {
         try {
             ProcessedWebhookEvent::query()->create([
                 'event_id' => $eventId,
             ]);
-
-            return true;
         } catch (UniqueConstraintViolationException | QueryException) {
-            return false;
+            return;
         }
     }
 }

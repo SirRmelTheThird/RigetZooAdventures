@@ -27,7 +27,9 @@ final class PaymentWebhookHandler
         try {
             $event = $this->gateway->parseWebhook($payload, $signature);
         } catch (InvalidWebhookException $e) {
-            $this->logger->warning('Rejected webhook', ['reason' => $e->getMessage()]);
+            $this->logger->warning('Rejected webhook', [
+                'reason' => $e->getMessage(),
+            ]);
 
             throw $e;
         }
@@ -35,15 +37,21 @@ final class PaymentWebhookHandler
         $type = WebhookEventType::tryFrom($event->type);
 
         if ($type === null) {
-            $this->logger->info('Ignored webhook', ['type' => $event->type]);
+            $this->logger->info('Ignored webhook', [
+                'type' => $event->type,
+            ]);
 
             return;
         }
 
-        $key = $event->eventId !== '' ? $event->eventId : md5($payload);
+        $key = $event->eventId !== ''
+            ? $event->eventId
+            : md5($payload);
 
-        if (!$this->processedEvents->markProcessed($key)) {
-            $this->logger->info('Webhook replay ignored', ['key' => $key]);
+        if ($this->processedEvents->isProcessed($key)) {
+            $this->logger->info('Webhook replay ignored', [
+                'key' => $key,
+            ]);
 
             return;
         }
@@ -52,6 +60,8 @@ final class PaymentWebhookHandler
             WebhookEventType::PaymentSucceeded => $this->handlePaymentSucceeded($event),
             WebhookEventType::PaymentFailed => $this->handlePaymentFailed($event),
         };
+
+        $this->processedEvents->markProcessed($key);
     }
 
     private function handlePaymentSucceeded(WebhookEvent $event): void
@@ -62,7 +72,7 @@ final class PaymentWebhookHandler
 
         $this->discord->paymentSucceeded(
             $event->intentId,
-            $event->amountMinorUnits
+            $event->amountMinorUnits,
         );
     }
 
@@ -75,7 +85,7 @@ final class PaymentWebhookHandler
         $this->discord->paymentFailed(
             $event->intentId,
             $event->failureMessage,
-            $event->amountMinorUnits
+            $event->amountMinorUnits,
         );
     }
 

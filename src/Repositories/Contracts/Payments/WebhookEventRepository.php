@@ -6,5 +6,7 @@ namespace Repositories\Contracts\Payments;
 
 interface WebhookEventRepository
 {
-    public function markProcessed(string $eventId): bool;
+    public function isProcessed(string $eventId): bool;
+
+    public function markProcessed(string $eventId): void;
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Services\Notifications;
 
 use Core\Logging\Logger;
+use RuntimeException;
 
 final class DiscordWebhookClient
 {
@@ -32,6 +33,8 @@ final class DiscordWebhookClient
                     'error' => $response->error,
                 ]
             );
+
+            throw new RuntimeException('Discord notification failed.');
         }
     }
 }

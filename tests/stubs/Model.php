@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Illuminate\Database\Eloquent;
+namespace Tests\Stubs;
 
 abstract class Model
 {

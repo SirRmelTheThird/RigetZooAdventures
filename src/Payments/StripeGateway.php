@@ -19,7 +19,7 @@ final class StripeGateway implements PaymentGateway
 {
     private const METADATA_CUSTOMER_ID = 'customer_id';
     private const STATUS_SUCCEEDED = 'succeeded';
-    private const INTENT_EVENT_PREFIX = 'payment_intent.';
+    private const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
     private const SUPPORTED_EVENTS = [
         WebhookEventType::PaymentSucceeded->value,
         WebhookEventType::PaymentFailed->value,
@@ -47,7 +47,10 @@ final class StripeGateway implements PaymentGateway
             throw new PaymentException(Messages::PAYMENT_INIT_FAILED);
         }
 
-        return new PaymentIntentRef($intent->id, (string) $intent->client_secret);
+        return new PaymentIntentRef(
+            $this->requireString($intent->id, Messages::PAYMENT_INIT_FAILED),
+            $this->requireString($intent->client_secret, Messages::PAYMENT_INIT_FAILED),
+        );
     }
 
     public function retrieveIntent(string $intentId): PaymentIntentState
@@ -61,10 +64,10 @@ final class StripeGateway implements PaymentGateway
         }
 
         return new PaymentIntentState(
-            $intent->id,
+            $this->requireString($intent->id, Messages::PAYMENT_UNVERIFIABLE),
             $intent->status === self::STATUS_SUCCEEDED,
-            (int) $intent->amount,
-            (string) $intent->currency,
+            $this->requireInt($intent->amount, Messages::PAYMENT_UNVERIFIABLE),
+            $this->requireString($intent->currency, Messages::PAYMENT_UNVERIFIABLE),
             $this->customerId($intent->metadata),
         );
     }
@@ -88,6 +91,8 @@ final class StripeGateway implements PaymentGateway
         try {
             $event = Webhook::constructEvent($payload, $signature, $this->settings->webhookSecret);
         } catch (UnexpectedValueException | SignatureVerificationException $e) {
+            $this->logger->exception($e, ['reason' => 'webhook_rejected']);
+
             throw new InvalidWebhookException($e->getMessage(), 0, $e);
         }
 
@@ -108,13 +113,13 @@ final class StripeGateway implements PaymentGateway
 
     private function customerId(StripeObject $metadata): ?string
     {
-        $customerId = $metadata->{self::METADATA_CUSTOMER_ID} ?? null;
-
-        if (!is_string($customerId) || $customerId === '') {
+        if (!$metadata->offsetExists(self::METADATA_CUSTOMER_ID)) {
             return null;
         }
 
-        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $customerId)) {
+        $customerId = $metadata[self::METADATA_CUSTOMER_ID];
+
+        if (!is_string($customerId) || !preg_match(self::UUID_PATTERN, $customerId)) {
             return null;
         }
 
@@ -128,5 +133,23 @@ final class StripeGateway implements PaymentGateway
         }
 
         return (string) $intent->last_payment_error->message;
+    }
+
+    private function requireString(mixed $value, string $message): string
+    {
+        if (!is_string($value) || $value === '') {
+            throw new PaymentException($message);
+        }
+
+        return $value;
+    }
+
+    private function requireInt(mixed $value, string $message): int
+    {
+        if (!is_int($value)) {
+            throw new PaymentException($message);
+        }
+
+        return $value;
     }
 }

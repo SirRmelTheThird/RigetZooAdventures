@@ -69,7 +69,7 @@ final class ErrorHandler
             return Response::json(['error' => $e->getMessage()], $e->status());
         }
 
-        return $this->views->render(self::NOT_FOUND_VIEW, ['message' => $e->getMessage()], $e->status());
+        return $this->renderView(self::NOT_FOUND_VIEW, ['message' => $e->getMessage()], $e->status());
     }
 
     private function rejected(UserFacingException $e, Request $request): Response
@@ -97,19 +97,50 @@ final class ErrorHandler
             return Response::json(['error' => Messages::SERVER_ERROR], HttpStatus::InternalServerError);
         }
 
-        if (!$this->views->exists(self::SERVER_ERROR_VIEW)) {
-            return Response::html(self::FALLBACK_HTML, HttpStatus::InternalServerError);
-        }
-
-        return $this->views->render(
+        return $this->renderView(
             self::SERVER_ERROR_VIEW,
             ['message' => Messages::SERVER_ERROR],
             HttpStatus::InternalServerError,
         );
     }
 
+    /** @param array<string, mixed> $data */
+    private function renderView(string $view, array $data, HttpStatus $status): Response
+    {
+        if (!$this->views->exists($view)) {
+            return Response::html(self::FALLBACK_HTML, $status);
+        }
+
+        try {
+            return $this->views->render($view, $data, $status);
+        } catch (Throwable $e) {
+            $this->logger->exception($e, ['view' => $view]);
+
+            return Response::html(self::FALLBACK_HTML, $status);
+        }
+    }
+
+    /**
+     * @param array<string|int, mixed> $body
+     * @return array<string|int, mixed>
+     */
     private function withoutSensitive(array $body): array
     {
-        return array_diff_key($body, array_flip(self::SENSITIVE_FIELDS));
+        $clean = [];
+
+        foreach ($body as $key => $value) {
+            if (in_array($key, self::SENSITIVE_FIELDS, true)) {
+                continue;
+            }
+
+            if (is_array($value)) {
+                $clean[$key] = $this->withoutSensitive($value);
+                continue;
+            }
+
+            $clean[$key] = $value;
+        }
+
+        return $clean;
     }
 }

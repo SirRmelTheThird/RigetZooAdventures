@@ -8,7 +8,7 @@ final class CartItemPresenter
 {
     private const TYPE_TICKET = 'ticket';
     private const QUANTITY_PREFIX = '× ';
-    private const TICKET_TITLE_SUFFIX = ' tickets';
+    private const TICKET_TITLE_SUFFIX = 'tickets';
 
 
     /** @param array<string, mixed> $item */
@@ -34,7 +34,7 @@ final class CartItemPresenter
         }
 
         return new CartItemView(
-            (string) $item['ticketType'] . self::TICKET_TITLE_SUFFIX,
+            ucfirst((string) $item['ticketType']) . ' ' .ucfirst(self::TICKET_TITLE_SUFFIX),
             $details,
             (float) $item['total'],
         );

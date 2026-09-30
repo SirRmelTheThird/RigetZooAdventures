@@ -976,13 +976,69 @@ p { margin: 0; text-wrap: pretty; }
 }
 
 /* ---------- Flatpickr Theme & Unavailable Dates ---------- */
+.flatpickr-wrapper {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
 .flatpickr-calendar {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
   background: #fff;
   border: 1px solid var(--hairline-strong);
   border-radius: 14px;
   box-shadow: 0 12px 36px rgb(0 0 0 / 16%);
   font-family: var(--font-body);
   overflow: hidden;
+}
+
+.flatpickr-calendar.static {
+  margin-top: 0.4rem;
+}
+
+.flatpickr-innerContainer,
+.flatpickr-rContainer,
+.flatpickr-weekdays,
+.flatpickr-weekdaycontainer,
+.flatpickr-days {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.rz-field .flatpickr-calendar input.cur-year,
+.rz-field .flatpickr-calendar input.cur-year:hover,
+.rz-field .flatpickr-calendar input.cur-year:focus {
+  display: inline-block;
+  width: auto;
+  min-height: 0;
+  padding: 0 0 0 0.4ch;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff;
+  font: 700 1.1rem/1 var(--font-display);
+}
+
+.rz-field .flatpickr-calendar select.flatpickr-monthDropdown-months,
+.rz-field .flatpickr-calendar select.flatpickr-monthDropdown-months:hover,
+.rz-field .flatpickr-calendar select.flatpickr-monthDropdown-months:focus {
+  display: inline-block;
+  width: auto;
+  min-height: 0;
+  padding: 0 0.4rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--forest-900);
+  box-shadow: none;
+  color: #fff;
+}
+
+.rz-field .flatpickr-calendar .numInputWrapper {
+  width: 6ch;
 }
 
 .flatpickr-months {
@@ -1052,12 +1108,25 @@ span.flatpickr-weekday {
 }
 
 .flatpickr-day {
+  max-width: none;
   border-radius: 8px;
   font-weight: 500;
   color: var(--ink);
   border: 1px solid transparent;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
+
+.flatpickr-days .dayContainer {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  padding: 0.5rem;
+}
+
+.flatpickr-weekdaycontainer {
+  padding-inline: 0.5rem;
+}
+
 
 .flatpickr-day:hover {
   background: var(--sage-200);

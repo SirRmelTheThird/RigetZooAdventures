@@ -20,12 +20,12 @@
     },
     "autoload": {
         "psr-4": {
+            "Config\\": "config/",
             "Bootstrap\\": "src/Bootstrap/",
             "Controllers\\": "src/Controllers/",
             "Contracts\\": "src/Contracts/",
             "Content\\": "src/Content/",
             "Cart\\": "src/Cart/",
-            "Config\\": "config/",
             "Core\\": "src/Core/",
             "Enums\\": "src/Enums/",
             "Factories\\": "src/Factories/",

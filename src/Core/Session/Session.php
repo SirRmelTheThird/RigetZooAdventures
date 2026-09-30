@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Core\Session;
 
 use Core\Constants\SessionKey;
-use Exceptions\Auth\AuthException;
 use Enums\TicketCategory;
+use Exceptions\Auth\AuthException;
+use Exceptions\Cart\InvalidCartException;
 
 final class Session
 {
@@ -15,7 +16,10 @@ final class Session
     private const COOKIE_SAMESITE = 'Lax';
     private const INI_USE_ONLY_COOKIES = 'session.use_only_cookies';
     private const INI_USE_STRICT_MODE = 'session.use_strict_mode';
-
+    private const CART_ITEMS_KEY = 'items';
+    private const ITEM_TYPE_KEY = 'type';
+    private const ITEM_TYPE_TICKET = 'ticket';
+    
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
@@ -168,19 +172,36 @@ final class Session
 
     public static function getCartCount(): int
     {
-        $cart = self::get(SessionKey::CART, ['items' => []]);
+        if (!self::has(SessionKey::CART)) {
+            return 0;
+        }
+
+        $cart = $_SESSION[SessionKey::CART];
+
+        if (!array_key_exists(self::CART_ITEMS_KEY, $cart)) {
+            throw InvalidCartException::missingItems();
+        }
+
         $count = 0;
 
-        foreach ($cart['items'] ?? [] as $item) {
-            $type = $item['type'] ?? '';
-
-            if ($type === 'ticket') {
-                $count += (int) ($item[TicketCategory::Adult] ?? 0) + (int) ($item[TicketCategory::Child] ?? 0);
-            } else {
-                $count += 1;
-            }
+        foreach ($cart[self::CART_ITEMS_KEY] as $item) {
+            $count += self::countItem($item);
         }
 
         return $count;
+    }
+
+    private static function countItem(array $item): int
+    {
+        if (!array_key_exists(self::ITEM_TYPE_KEY, $item)) {
+            throw InvalidCartException::missingItemType();
+        }
+
+        if ($item[self::ITEM_TYPE_KEY] !== self::ITEM_TYPE_TICKET) {
+            return 1;
+        }
+
+        return (int) $item[TicketCategory::Adult->value]
+            + (int) $item[TicketCategory::Child->value];
     }
 }

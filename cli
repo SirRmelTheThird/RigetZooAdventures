@@ -32,7 +32,7 @@ switch ($command) {
         if ($seed) {
             echo "\nSeeding database...\n";
             require __DIR__ . '/database/seeders/DatabaseSeeder.php';
-            $seeder = new Database\Seeders\DatabaseSeeder();
+            $seeder = Database\Seeders\DatabaseSeeder::create();
             $seeder->run();
             echo "Seeding completed!\n";
         }
@@ -41,7 +41,7 @@ switch ($command) {
     case 'db:seed':
         echo "Seeding database...\n";
         require __DIR__ . '/database/seeders/DatabaseSeeder.php';
-        $seeder = new Database\Seeders\DatabaseSeeder();
+        $seeder = Database\Seeders\DatabaseSeeder::create();
         $seeder->run();
         echo "Seeding completed!\n";
         break;
