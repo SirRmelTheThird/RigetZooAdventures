@@ -1,0 +1,45 @@
+name: 🧪 Tests
+
+on:
+  push:
+    branches: ["main", "test"]
+  pull_request:
+    branches: ["main", "test"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  phpunit:
+    name: 🧪 PHPUnit
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup PHP and dependencies
+        uses: ./.github/actions/setup
+
+      - name: 🔐 Prepare environment
+        run: |
+          cat > .env <<'EOF'
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=riget_zoo_adventures_test
+          DB_USERNAME=root
+          DB_PASSWORD=root
+          STRIPE_SECRET_KEY=sk_test_ci_dummy
+          STRIPE_PUBLISHABLE_KEY=pk_test_ci_dummy
+          STRIPE_WEBHOOK_SECRET=whsec_ci_dummy
+          DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/000000000000000000/ci_dummy
+          DISCORD_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+          APP_ENV=testing
+          APP_DEBUG=false
+          EOF
+
+      - name: 🧪 Run tests
+        run: vendor/bin/phpunit

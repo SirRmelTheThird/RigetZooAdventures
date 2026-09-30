@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Config;
 
-use Config\Settings\DbSettings;
-use Core\Exceptions\ConfigException;
+use Dotenv\Dotenv;
+use Exceptions\System\EnvFileMissingException;
+use Exceptions\System\InvalidEnvVariableException;
+use Exceptions\System\MissingEnvVariableException;
+use Enums\EnvKey;
 
-final class Config
+class Config
 {
+    private const ENV_FILE_NAME = '.env';
+
     /** @var array<string, string> */
     private static array $env = [];
     private static bool $loaded = false;
@@ -19,79 +24,81 @@ final class Config
             return;
         }
 
-        $dotenvPath = dirname(__DIR__) . '/.env';
+        $root = dirname(__DIR__);
 
-        if (!file_exists($dotenvPath)) {
-            throw new ConfigException(
-                sprintf('Configuration file %s not found. Copy .env.example to .env and configure your settings.', $dotenvPath)
-            );
+        if (!file_exists($root . '/' . self::ENV_FILE_NAME)) {
+            throw new EnvFileMissingException();
         }
 
-        $dotenv = \Dotenv\Dotenv::createImmutable(dirname($dotenvPath));
+        $dotenv = Dotenv::createImmutable($root);
         $dotenv->load();
+        $dotenv->required(array_column(EnvKey::cases(), 'value'));
 
-        foreach ($_ENV as $key => $value) {
-            self::$env[$key] = is_string($value) ? $value : (string) $value;
+        foreach (EnvKey::cases() as $key) {
+            self::$env[$key->value] = (string) $_ENV[$key->value];
         }
 
         self::$loaded = true;
     }
 
-    public static function get(string $key, mixed $default = null): mixed
+    /** Key must be present and non-empty. */
+    public static function require(EnvKey $key): string
     {
-        if (!self::$loaded) {
-            self::load();
-        }
+        $value = self::lookup($key);
 
-        return self::$env[$key] ?? $default;
+        MissingEnvVariableException::assert($key->value, $value);
+
+        return $value;
     }
 
-    public static function isDebug(): bool
+    /** Key must be present, but an empty value is valid (e.g. a local DB_PASSWORD). */
+    public static function requireAllowingEmpty(EnvKey $key): string
     {
-        return filter_var((string) self::get('APP_DEBUG', 'false'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        return self::lookup($key);
+    }
+
+    /** Key must be present. An empty value means "not configured" and returns null. */
+    public static function optional(EnvKey $key): ?string
+    {
+        $value = self::lookup($key);
+
+        if (trim($value) === '') {
+            return null;
+        }
+
+        return $value;
     }
 
     public static function shouldDisplayErrors(): bool
     {
-        $debug = self::get('APP_DEBUG');
+        $debug = filter_var(
+            self::require(EnvKey::AppDebug),
+            FILTER_VALIDATE_BOOLEAN,
+            FILTER_NULL_ON_FAILURE
+        );
 
-        if ($debug !== null) {
-            return filter_var($debug, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        if ($debug === null) {
+            throw new InvalidEnvVariableException(EnvKey::AppDebug->value, 'must be a boolean');
         }
 
-        $environment = strtolower((string) self::get('APP_ENV', 'production'));
-
-        return in_array($environment, ['local', 'development', 'test'], true);
+        return $debug;
     }
 
-    public static function dbSettings(): DbSettings
+    private static function lookup(EnvKey $key): string
     {
         self::load();
 
-        $host = self::get('DB_HOST');
-        $port = self::get('DB_PORT', 3306);
-        $database = self::get('DB_DATABASE');
-        $username = self::get('DB_USERNAME');
-        $password = self::get('DB_PASSWORD');
+        return self::$env[$key->value];
+    }
 
-        if (empty($host)) {
-            throw new ConfigException('Database host is required');
+    public static function requireInt(EnvKey $key): int
+    {
+        $value = filter_var(self::require($key), FILTER_VALIDATE_INT);
+
+        if ($value === false) {
+            throw new InvalidEnvVariableException($key->value, 'must be an integer');
         }
 
-        if (empty($database)) {
-            throw new ConfigException('Database name is required');
-        }
-
-        if (empty($username)) {
-            throw new ConfigException('Database username is required');
-        }
-
-        return new DbSettings(
-            host: $host,
-            port: (int) $port,
-            database: $database,
-            username: $username,
-            password: $password,
-        );
+        return $value;
     }
 }

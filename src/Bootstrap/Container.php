@@ -17,10 +17,6 @@ use Controllers\Profile;
 use Controllers\Ticket;
 use Core\Error\ErrorHandler;
 use Core\Session\PhpSessionStore;
-use DTOs\Accommodations\AccommodationSelection;
-use DTOs\Auth\LoginCredentials;
-use DTOs\Auth\Registration;
-use DTOs\Tickets\TicketSelection;
 use Core\Session\SessionStore;
 use Core\Logging\FileLogWriter;
 use Core\Logging\Logger;
@@ -28,7 +24,7 @@ use Core\Http\Router;
 use Core\Http\MiddlewarePipeline;
 use Core\Validation\Validator;
 use Core\View\ViewRenderer;
-use Exceptions\System\MissingEnvVariableException;
+use Enums\EnvKey;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\ConnectionInterface;
 use Middleware\AuthMiddleware;
@@ -86,6 +82,9 @@ final class Container
 
     /** @var array<string, Closure> */
     private array $factories = [];
+
+    private const LOG_FILE_PATH = '/storage/logs/app.log';
+    private const VIEWS_PATH = '/src/Views';
 
     public function __construct(
         private readonly string $basePath,
@@ -186,19 +185,18 @@ final class Container
         return $this->once(
             Logger::class,
             fn (): Logger => new Logger(
-                new FileLogWriter(
-                    $this->basePath . '/storage/logs/app.log'
-                )
+                new FileLogWriter($this->basePath . self::LOG_FILE_PATH)
             )
         );
     }
+
 
     private function views(): ViewRenderer
     {
         return $this->once(
             ViewRenderer::class,
             fn (): ViewRenderer => new ViewRenderer(
-                $this->basePath . '/src/Views',
+                $this->basePath . self::VIEWS_PATH,
                 $this->sharedViewData()
             )
         );
@@ -236,20 +234,21 @@ final class Container
         return $this->once(
             StripeSettings::class,
             fn (): StripeSettings => new StripeSettings(
-                $this->env('STRIPE_SECRET_KEY'),
-                $this->env('STRIPE_PUBLISHABLE_KEY'),
-                $this->env('STRIPE_WEBHOOK_SECRET')
+                Config::require(EnvKey::StripeSecretKey),
+                Config::require(EnvKey::StripePublishableKey),
+                Config::require(EnvKey::StripeWebhookSecret)
             )
         );
     }
+
 
     private function discordSettings(): DiscordSettings
     {
         return $this->once(
             DiscordSettings::class,
             fn (): DiscordSettings => new DiscordSettings(
-                $this->env('DISCORD_WEBHOOK_URL'),
-                $this->env('DISCORD_CA_BUNDLE') ?: null
+                Config::require(EnvKey::DiscordWebhookUrl),
+                Config::optional(EnvKey::DiscordCaBundle)
             )
         );
     }
@@ -525,15 +524,12 @@ final class Container
         );
     }
 
-    private function env(string $key): string
-    {
-        $value = Config::get($key);
-
-        MissingEnvVariableException::assert($key, $value);
-
-        return (string) $value;
-    }
-
+    /**
+   * @template T of object
+   * @param class-string<T> $id
+   * @param Closure(): T $factory
+   * @return T
+   */
     private function once(string $id, Closure $factory): object
     {
         if (!array_key_exists($id, $this->shared)) {

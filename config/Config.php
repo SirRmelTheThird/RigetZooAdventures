@@ -5,61 +5,135 @@ declare(strict_types=1);
 namespace Config;
 
 use Dotenv\Dotenv;
+use Enums\EnvKey;
+use Exceptions\System\EnvFileMissingException;
+use Exceptions\System\InvalidEnvVariableException;
+use Exceptions\System\MissingEnvVariableException;
 
+/**
+ * Typed, fail-fast access to environment configuration.
+ *
+ * The `.env` file is loaded once. Every {@see EnvKey} must be present at
+ * load time, so accessors never need to re-check that a key exists.
+ */
 class Config
 {
-    /**
-     * @var array<string, string>
-    */
-    private static $env = [];
-    private static $loaded = false;
+    private const ENV_FILE_NAME = '.env';
 
-    public static function load()
+    /** @var array<string, string> */
+    private static array $env = [];
+    private static bool $loaded = false;
+
+    /**
+     * Loads and validates the `.env` file. Safe to call repeatedly.
+     *
+     * @throws EnvFileMissingException When the `.env` file does not exist.
+     * @throws \Dotenv\Exception\ValidationException When a key from EnvKey is absent.
+     */
+    public static function load(): void
     {
         if (self::$loaded) {
             return;
         }
 
-        $envFile = dirname(__DIR__) . '/.env';
+        $root = dirname(__DIR__);
 
-        if (!file_exists($envFile)) {
-            throw new \Exception('.env file not found. Copy .env.example to .env and configure your settings.');
+        if (!file_exists($root . '/' . self::ENV_FILE_NAME)) {
+            throw new EnvFileMissingException();
         }
 
-        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv = Dotenv::createImmutable($root);
         $dotenv->load();
+        $dotenv->required(array_column(EnvKey::cases(), 'value'));
 
-        foreach ($_ENV as $key => $value) {
-            self::$env[$key] = is_string($value) ? $value : (string) $value;
+        foreach (EnvKey::cases() as $key) {
+            self::$env[$key->value] = (string) $_ENV[$key->value];
         }
 
         self::$loaded = true;
     }
 
-    public static function get(string $key, ?string $default = null)
+    /**
+     * Returns the value of a key that must be present and non-empty.
+     *
+     * @throws MissingEnvVariableException When the value is empty.
+     */
+    public static function require(EnvKey $key): string
     {
-        if (!self::$loaded) {
-            self::load();
+        $value = self::lookup($key);
+
+        MissingEnvVariableException::assert($key->value, $value);
+
+        return $value;
+    }
+
+    /**
+     * Returns the value of a key that must be present but may be empty
+     * (for example a local DB_PASSWORD).
+     */
+    public static function requireAllowingEmpty(EnvKey $key): string
+    {
+        return self::lookup($key);
+    }
+
+    /**
+     * Returns the value, or null when the key is present but empty,
+     * meaning "not configured".
+     */
+    public static function optional(EnvKey $key): ?string
+    {
+        $value = self::lookup($key);
+
+        if (trim($value) === '') {
+            return null;
         }
 
-        return self::$env[$key] ?? $default;
+        return $value;
     }
 
-    public static function isDebug()
+    /**
+     * Returns the value of a key that must be a non-empty integer.
+     *
+     * @throws MissingEnvVariableException When the value is empty.
+     * @throws InvalidEnvVariableException When the value is not an integer.
+     */
+    public static function requireInt(EnvKey $key): int
     {
-        return self::get('APP_DEBUG', 'false') === 'true';
+        $value = filter_var(self::require($key), FILTER_VALIDATE_INT);
+
+        if ($value === false) {
+            throw new InvalidEnvVariableException($key->value, 'must be an integer');
+        }
+
+        return $value;
     }
 
+    /**
+     * Whether errors should be shown to the user, driven by APP_DEBUG.
+     *
+     * @throws MissingEnvVariableException When APP_DEBUG is empty.
+     * @throws InvalidEnvVariableException When APP_DEBUG is not a boolean.
+     */
     public static function shouldDisplayErrors(): bool
     {
-        $debug = self::get('APP_DEBUG');
+        $debug = filter_var(
+            self::require(EnvKey::AppDebug),
+            FILTER_VALIDATE_BOOLEAN,
+            FILTER_NULL_ON_FAILURE
+        );
 
-        if ($debug !== null) {
-            return filter_var($debug, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        if ($debug === null) {
+            throw new InvalidEnvVariableException(EnvKey::AppDebug->value, 'must be a boolean');
         }
 
-        $environment = strtolower((string) self::get('APP_ENV', 'production'));
+        return $debug;
+    }
 
-        return in_array($environment, ['local', 'development', 'test'], true);
+    /** Presence is guaranteed by load(), so no key check is needed here. */
+    private static function lookup(EnvKey $key): string
+    {
+        self::load();
+
+        return self::$env[$key->value];
     }
 }

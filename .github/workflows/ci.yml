@@ -1,0 +1,60 @@
+name: 🚦 CI
+
+on:
+  push:
+    branches: ["main", "test"]
+  pull_request:
+    branches: ["main", "test"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  composer-validate:
+    name: ✅ Validate composer files
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐘 Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - name: ✅ Validate composer.json and composer.lock
+        run: composer validate --strict
+
+  syntax:
+    name: 🔍 PHP syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐘 Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - name: 🔍 Run PHP syntax checks
+        run: find src -name "*.php" -print0 | xargs -0 -n1 php -l
+
+  code-style:
+    name: 🎨 Code style
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup PHP and dependencies
+        uses: ./.github/actions/setup
+
+      - name: 🎨 Check code formatting
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff

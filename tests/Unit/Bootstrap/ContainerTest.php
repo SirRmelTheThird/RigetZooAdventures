@@ -25,7 +25,7 @@ final class ContainerTest extends TestCase
     public function testMakeThrowsContainerExceptionForUnregisteredClass(): void
     {
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage('Nothing is registered for UnregisteredClass');
+        $this->expectExceptionMessageIs('Nothing is registered for UnregisteredClass');
 
         $this->container->make('UnregisteredClass');
     }
