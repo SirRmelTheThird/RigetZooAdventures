@@ -2,7 +2,7 @@
 
 # 🦁 Riget Zoo Adventures
 
-[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4.svg?style=for-the-badge\&logo=php\&logoColor=white)](https://www.php.net/)
+[![PHP](https://img.shields.io/badge/PHP-8.4%2B-777BB4.svg?style=for-the-badge\&logo=php\&logoColor=white)](https://www.php.net/)
 [![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1.svg?style=for-the-badge\&logo=mysql\&logoColor=white)](https://www.mysql.com/)
 [![Stripe](https://img.shields.io/badge/Stripe-Payments-635BFF.svg?style=for-the-badge\&logo=stripe\&logoColor=white)](https://stripe.com/)
 [![Composer](https://img.shields.io/badge/Composer-Dependencies-885630.svg?style=for-the-badge\&logo=composer\&logoColor=white)](https://getcomposer.org/)
