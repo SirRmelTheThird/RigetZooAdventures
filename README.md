@@ -8,6 +8,8 @@
 [![Composer](https://img.shields.io/badge/Composer-Dependencies-885630.svg?style=for-the-badge\&logo=composer\&logoColor=white)](https://getcomposer.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
+<img src="https://github.com/SirRmelTheThird/RigetZooAdventures/blob/main/docs/demo.gif?raw=true" alt="Riget Zoo Adventures Demo"/>
+
 </div>
 
 ## 📖 Overview
