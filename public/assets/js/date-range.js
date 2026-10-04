@@ -38,6 +38,7 @@ function setupFlatpickrRange(context) {
 
     const startPicker = window.flatpickr(start, {
         dateFormat: DATE_FORMAT,
+        position: 'auto center',
         minDate: start.getAttribute('min') || DEFAULT_START_MIN,
         maxDate: start.getAttribute('max') || undefined,
         disable: [(date) => AvailabilityRules.isCheckInBlocked(formatDateObj(date), windows, unavailable)],
@@ -70,6 +71,7 @@ function setupFlatpickrRange(context) {
 
     endPicker = window.flatpickr(end, {
         dateFormat: DATE_FORMAT,
+        position: 'auto center',
         minDate: end.getAttribute('min') || addDays(new Date(), 1),
         maxDate: end.getAttribute('max') || undefined,
         disable: [(date) => AvailabilityRules.isCheckOutBlocked(formatDateObj(date), windows, unavailable)],
@@ -151,6 +153,11 @@ function setupNativeDateRange(context) {
     });
 }
 
+function syncTicketCalendarSize(input, instance) {
+    instance.calendarContainer.classList.add('rz-ticket-calendar');
+    instance.calendarContainer.style.width = `${input.getBoundingClientRect().width}px`;
+}
+
 function setupDateRangeForm(form, hasFlatpickr) {
     const start = form.querySelector(SELECTOR.RANGE_START);
     const end = form.querySelector(SELECTOR.RANGE_END);
@@ -193,9 +200,11 @@ function initPlainDatePickers() {
     document.querySelectorAll(SELECTOR.PLAIN_DATE_INPUT).forEach((input) => {
         window.flatpickr(input, {
             dateFormat: DATE_FORMAT,
+            position: 'below center',
             minDate: input.getAttribute('min') || DEFAULT_START_MIN,
             maxDate: input.getAttribute('max') || undefined,
-            static: 'true',
+            onReady: (...args) => syncTicketCalendarSize(input, args[2]),
+            onOpen: (...args) => syncTicketCalendarSize(input, args[2]),
         });
     });
 }

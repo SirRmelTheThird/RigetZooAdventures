@@ -37,6 +37,11 @@ final class AuthServiceTest extends TestCase
                 return $username === $this->customer->username ? $this->customer : null;
             }
 
+            public function saveStripeCustomerId(Customer $customer, string $stripeCustomerId): void
+            {
+                $customer->stripe_customer_id = $stripeCustomerId;
+            }
+
             public function findById(string $customerId): ?Customer
             {
                 return $customerId === (string) $this->customer->id ? $this->customer : null;

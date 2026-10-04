@@ -983,8 +983,6 @@ p { margin: 0; text-wrap: pretty; }
 }
 
 .flatpickr-calendar {
-  width: 100%;
-  max-width: none;
   box-sizing: border-box;
   background: #fff;
   border: 1px solid var(--hairline-strong);
@@ -998,14 +996,25 @@ p { margin: 0; text-wrap: pretty; }
   margin-top: 0.4rem;
 }
 
+.flatpickr-calendar.rz-ticket-calendar .flatpickr-innerContainer,
+.flatpickr-calendar.rz-ticket-calendar .flatpickr-rContainer,
+.flatpickr-calendar.rz-ticket-calendar .flatpickr-months,
+.flatpickr-calendar.rz-ticket-calendar .flatpickr-month,
+.flatpickr-calendar.rz-ticket-calendar .flatpickr-weekdays,
+.flatpickr-calendar.rz-ticket-calendar .flatpickr-weekdaycontainer,
+.flatpickr-calendar.rz-ticket-calendar .flatpickr-days,
+.flatpickr-calendar.rz-ticket-calendar .flatpickr-days .dayContainer {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+}
+
 .flatpickr-innerContainer,
 .flatpickr-rContainer,
 .flatpickr-weekdays,
 .flatpickr-weekdaycontainer,
 .flatpickr-days {
-  width: 100%;
   min-width: 0;
-  max-width: none;
 }
 
 .rz-field .flatpickr-calendar input.cur-year,
@@ -1108,7 +1117,6 @@ span.flatpickr-weekday {
 }
 
 .flatpickr-day {
-  max-width: none;
   border-radius: 8px;
   font-weight: 500;
   color: var(--ink);
@@ -1117,9 +1125,7 @@ span.flatpickr-weekday {
 }
 
 .flatpickr-days .dayContainer {
-  width: 100%;
   min-width: 0;
-  max-width: none;
   padding: 0.5rem;
 }
 

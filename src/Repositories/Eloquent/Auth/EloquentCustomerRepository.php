@@ -14,6 +14,12 @@ final class EloquentCustomerRepository implements CustomerRepository
         return Customer::find($customerId);
     }
 
+    public function saveStripeCustomerId(Customer $customer, string $stripeCustomerId): void
+    {
+        $customer->setAttribute('stripe_customer_id', $stripeCustomerId);
+        $customer->save();
+    }
+
     public function findByUsername(string $username): ?Customer
     {
         return Customer::where('username', $username)->first();

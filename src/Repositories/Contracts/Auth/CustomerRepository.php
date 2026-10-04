@@ -10,6 +10,8 @@ interface CustomerRepository
 {
     public function findById(string $customerId): ?Customer;
 
+    public function saveStripeCustomerId(Customer $customer, string $stripeCustomerId): void;
+
     public function findByUsername(string $username): ?Customer;
 
     public function usernameExists(string $username): bool;

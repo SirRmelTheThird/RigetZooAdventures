@@ -37,15 +37,23 @@ final class CheckoutService
             throw new PaymentException(Messages::PAYMENT_UNVERIFIABLE);
         }
 
-        return $this->gateway->createIntent($cart->totalMinorUnits(), self::CURRENCY, [
-            'customer_id' => $customerId,
-            'customer_name' => trim(
-                (string) $customer->getAttribute('first_name')
-                . ' '
-                . (string) $customer->getAttribute('last_name')
-            ),
-            'customer_username' => (string) $customer->getAttribute('username'),
-            'customer_email' => (string) $customer->getAttribute('email'),
+        $stripeCustomerId = (string) $customer->getAttribute('stripe_customer_id');
+
+        if ($stripeCustomerId === '') {
+            $stripeCustomerId = $this->gateway->createCustomer([
+                'customer_id' => $customerId,
+                'name' => trim(
+                    (string) $customer->getAttribute('first_name')
+                    . ' '
+                    . (string) $customer->getAttribute('last_name')
+                ),
+                'username' => (string) $customer->getAttribute('username'),
+                'email' => (string) $customer->getAttribute('email'),
+            ]);
+            $this->customers->saveStripeCustomerId($customer, $stripeCustomerId);
+        }
+
+        return $this->gateway->createIntent($cart->totalMinorUnits(), self::CURRENCY, $stripeCustomerId, [
             'order_type' => $this->orderType($cart),
         ]);
     }
@@ -55,12 +63,13 @@ final class CheckoutService
         $this->assertNotEmpty($cart);
 
         $intent = $this->gateway->retrieveIntent($intentId);
+        $customer = $this->customers->findById($customerId);
 
-        if (!$intent->succeeded) {
+        if (!$intent->succeeded || $customer === null) {
             throw new PaymentException(Messages::PAYMENT_NOT_SUCCESSFUL);
         }
 
-        if ($intent->customerId !== $customerId) {
+        if ($intent->customerId !== (string) $customer->getAttribute('stripe_customer_id')) {
             $this->logger->error('Payment belongs to another customer', ['payment_intent_id' => $intentId, 'customer_id' => $customerId]);
 
             throw new PaymentException(Messages::PAYMENT_UNVERIFIABLE);

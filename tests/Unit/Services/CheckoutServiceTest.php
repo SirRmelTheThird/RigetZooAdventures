@@ -34,6 +34,7 @@ final class CheckoutServiceTest extends TestCase
             'last_name' => 'Doe',
             'username' => 'jane_doe',
             'email' => 'jane@example.com',
+            'stripe_customer_id' => 'cus_test',
         ]);
         $customers->method('findById')->willReturn($customer);
 
@@ -42,7 +43,7 @@ final class CheckoutServiceTest extends TestCase
 
     private function paid(int $customerId, int $amount): PaymentIntentState
     {
-        return new PaymentIntentState('pi_1', true, $amount, 'gbp', (string) $customerId);
+        return new PaymentIntentState('pi_1', true, $amount, 'gbp', $customerId === 9 ? 'cus_test' : 'cus_other');
     }
 
     public function testMatchingPaidIntentBooksTheOrderOnce(): void
@@ -61,7 +62,7 @@ final class CheckoutServiceTest extends TestCase
     {
         $gateway = new FakeGateway();
         $placer = new FakePlacer();
-        $gateway->state = new PaymentIntentState('pi_1', false, 100, 'gbp', '9');
+        $gateway->state = new PaymentIntentState('pi_1', false, 100, 'gbp', 'cus_test');
 
         try {
             $this->checkout($gateway, $placer)->complete('9', $this->ticketCart(), 'pi_1');
@@ -98,7 +99,7 @@ final class CheckoutServiceTest extends TestCase
             true,
             $cart->totalMinorUnits(),
             'eur',
-            '9',
+            'cus_test',
         );
 
         try {
@@ -186,11 +187,11 @@ final class CheckoutServiceTest extends TestCase
         $gateway = new class () extends FakeGateway {
             public int $amount = 0;
 
-            public function createIntent(int $amountMinorUnits, string $currency, array $metadata): PaymentIntentRef
+            public function createIntent(int $amountMinorUnits, string $currency, string $customerId, array $metadata): PaymentIntentRef
             {
                 $this->amount = $amountMinorUnits;
 
-                return parent::createIntent($amountMinorUnits, $currency, $metadata);
+                return parent::createIntent($amountMinorUnits, $currency, $customerId, $metadata);
             }
         };
 
@@ -199,18 +200,39 @@ final class CheckoutServiceTest extends TestCase
         self::assertSame(2000, $gateway->amount);
     }
 
-    public function testBeginSendsCustomerAndBookingMetadata(): void
+    public function testBeginKeepsCustomerDetailsOutOfPaymentMetadata(): void
     {
         $gateway = new FakeGateway();
 
         $this->checkout($gateway, new FakePlacer())->begin('9', $this->ticketCart(1, 0));
 
+        self::assertSame(['order_type' => 'tickets'], $gateway->metadata);
+        self::assertSame('cus_test', $gateway->intentCustomerId);
+    }
+
+    public function testBeginCreatesAndStoresStripeCustomerWhenMissing(): void
+    {
+        $gateway = new FakeGateway();
+        $customer = new Customer();
+        $customer->forceFill([
+            'id' => '9',
+            'first_name' => 'Jane',
+            'last_name' => 'Doe',
+            'username' => 'jane_doe',
+            'email' => 'jane@example.com',
+        ]);
+        $customers = $this->createMock(CustomerRepository::class);
+        $customers->expects(self::once())->method('findById')->with('9')->willReturn($customer);
+        $customers->expects(self::once())->method('saveStripeCustomerId')->with($customer, 'cus_test');
+
+        $checkout = new CheckoutService($gateway, new FakePlacer(), new Logger(new MemoryLogWriter()), $customers);
+        $checkout->begin('9', $this->ticketCart(1, 0));
+
         self::assertSame([
             'customer_id' => '9',
-            'customer_name' => 'Jane Doe',
-            'customer_username' => 'jane_doe',
-            'customer_email' => 'jane@example.com',
-            'order_type' => 'tickets',
-        ], $gateway->metadata);
+            'name' => 'Jane Doe',
+            'username' => 'jane_doe',
+            'email' => 'jane@example.com',
+        ], $gateway->customer);
     }
 }

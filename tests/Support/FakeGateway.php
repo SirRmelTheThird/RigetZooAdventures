@@ -20,9 +20,22 @@ class FakeGateway implements PaymentGateway
     public ?PaymentIntentState $state = null;
     /** @var array<string, string> */
     public array $metadata = [];
+    public string $customerId = 'cus_test';
+    public string $intentCustomerId = '';
+    /** @var array<string, string> */
+    public array $customer = [];
 
-    public function createIntent(int $amountMinorUnits, string $currency, array $metadata): PaymentIntentRef
+    public function createCustomer(array $customer): string
     {
+        $this->customer = $customer;
+
+        return $this->customerId;
+    }
+
+    /** @param array<string, string> $metadata */
+    public function createIntent(int $amountMinorUnits, string $currency, string $customerId, array $metadata): PaymentIntentRef
+    {
+        $this->intentCustomerId = $customerId;
         $this->metadata = $metadata;
 
         return new PaymentIntentRef('pi_1', 'secret_1');

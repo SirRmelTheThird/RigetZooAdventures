@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Models\Orders\Order;
 use Models\Rewards\RewardPoint;
 
+/** @property string|null $stripe_customer_id */
 class Customer extends Model
 {
     use HasUuids;
@@ -24,6 +25,7 @@ class Customer extends Model
         'username',
         'email',
         'password',
+        'stripe_customer_id',
     ];
 
     protected $keyType = 'string';
