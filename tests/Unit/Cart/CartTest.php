@@ -14,12 +14,13 @@ final class CartTest extends TestCase
 {
     use CartFixtures;
 
-    public function testTotalIsDerivedAndMoneyConvertsToCentsWithoutTruncation(): void
+    public function testTotalMinorUnitsConvertsPoundsToPenceWithoutTruncation(): void
     {
         $cart = $this->ticketCart(1, 0);
 
         self::assertSame(20, $cart->total());
-        self::assertSame(20, $cart->totalMinorUnits());
+        self::assertSame(2000, $cart->totalMinorUnits());
+        self::assertSame(20, $cart->toArray()['total']);
     }
 
     public function testCartSurvivesTheSessionRoundTrip(): void

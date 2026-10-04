@@ -466,7 +466,8 @@ final class Container
             fn (): CheckoutService => new CheckoutService(
                 $this->gateway(),
                 $this->bookings(),
-                $this->logger()
+                $this->logger(),
+                $this->customerRepository()
             )
         );
     }

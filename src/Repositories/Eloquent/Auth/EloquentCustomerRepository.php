@@ -9,6 +9,11 @@ use Repositories\Contracts\Auth\CustomerRepository;
 
 final class EloquentCustomerRepository implements CustomerRepository
 {
+    public function findById(string $customerId): ?Customer
+    {
+        return Customer::find($customerId);
+    }
+
     public function findByUsername(string $username): ?Customer
     {
         return Customer::where('username', $username)->first();

@@ -11,7 +11,7 @@ Write-Host "Press Ctrl+C to stop the server" -ForegroundColor Red
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "To start the Stripe webhook server, run:" -ForegroundColor Green
-Write-Host "stripe listen --forward-to localhost:8000/webhook/stripe" -ForegroundColor Cyan
+Write-Host "stripe listen --events payment_intent.succeeded --events payment_intent.payment_failed --forward-to localhost:8000/webhook/stripe" -ForegroundColor Cyan
 Write-Host ""
 
 Set-Location $PSScriptRoot

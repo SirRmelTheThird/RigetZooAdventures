@@ -18,9 +18,13 @@ class FakeGateway implements PaymentGateway
     public array $refundKeys = [];
     public bool $refundFails = false;
     public ?PaymentIntentState $state = null;
+    /** @var array<string, string> */
+    public array $metadata = [];
 
     public function createIntent(int $amountMinorUnits, string $currency, array $metadata): PaymentIntentRef
     {
+        $this->metadata = $metadata;
+
         return new PaymentIntentRef('pi_1', 'secret_1');
     }
 

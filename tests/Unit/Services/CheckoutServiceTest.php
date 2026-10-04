@@ -8,9 +8,11 @@ use Cart\Cart;
 use Core\Logging\Logger;
 use Exceptions\Cart\CartException;
 use Exceptions\Payment\PaymentException;
+use Models\Auth\Customer;
 use Payments\PaymentIntentRef;
 use Payments\PaymentIntentState;
 use PHPUnit\Framework\TestCase;
+use Repositories\Contracts\Auth\CustomerRepository;
 use RuntimeException;
 use Services\Checkout\CheckoutService;
 use Tests\Support\CartFixtures;
@@ -24,7 +26,18 @@ final class CheckoutServiceTest extends TestCase
 
     private function checkout(FakeGateway $gateway, FakePlacer $placer): CheckoutService
     {
-        return new CheckoutService($gateway, $placer, new Logger(new MemoryLogWriter()));
+        $customers = $this->createStub(CustomerRepository::class);
+        $customer = new Customer();
+        $customer->forceFill([
+            'id' => '9',
+            'first_name' => 'Jane',
+            'last_name' => 'Doe',
+            'username' => 'jane_doe',
+            'email' => 'jane@example.com',
+        ]);
+        $customers->method('findById')->willReturn($customer);
+
+        return new CheckoutService($gateway, $placer, new Logger(new MemoryLogWriter()), $customers);
     }
 
     private function paid(int $customerId, int $amount): PaymentIntentState
@@ -183,6 +196,21 @@ final class CheckoutServiceTest extends TestCase
 
         $this->checkout($gateway, new FakePlacer())->begin('9', $this->ticketCart(1, 0));
 
-        self::assertSame(20, $gateway->amount);
+        self::assertSame(2000, $gateway->amount);
+    }
+
+    public function testBeginSendsCustomerAndBookingMetadata(): void
+    {
+        $gateway = new FakeGateway();
+
+        $this->checkout($gateway, new FakePlacer())->begin('9', $this->ticketCart(1, 0));
+
+        self::assertSame([
+            'customer_id' => '9',
+            'customer_name' => 'Jane Doe',
+            'customer_username' => 'jane_doe',
+            'customer_email' => 'jane@example.com',
+            'order_type' => 'tickets',
+        ], $gateway->metadata);
     }
 }

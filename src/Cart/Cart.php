@@ -84,7 +84,7 @@ final class Cart
 
     public function totalMinorUnits(): int
     {
-        return $this->total();
+        return $this->total() * 100;
     }
 
     /** @return array{items: array<string, array<string, mixed>>, total: int} */
@@ -92,7 +92,7 @@ final class Cart
     {
         return [
             'items' => array_map(static fn (CartItem $item): array => $item->toArray(), $this->items),
-            'total' => $this->totalMinorUnits(),
+            'total' => $this->total(),
         ];
     }
 

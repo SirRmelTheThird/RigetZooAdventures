@@ -37,6 +37,11 @@ final class AuthServiceTest extends TestCase
                 return $username === $this->customer->username ? $this->customer : null;
             }
 
+            public function findById(string $customerId): ?Customer
+            {
+                return $customerId === (string) $this->customer->id ? $this->customer : null;
+            }
+
             public function usernameExists(string $username): bool
             {
                 return $username === $this->customer->username;

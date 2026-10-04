@@ -8,6 +8,8 @@ use Models\Auth\Customer;
 
 interface CustomerRepository
 {
+    public function findById(string $customerId): ?Customer;
+
     public function findByUsername(string $username): ?Customer;
 
     public function usernameExists(string $username): bool;

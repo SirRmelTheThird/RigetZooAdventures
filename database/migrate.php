@@ -10,6 +10,7 @@ $migrations = [
     'CreateOrderItemsTable',
     'CreateAccommodationAvailabilitiesTable',
     'CreateRewardPointsTable',
+    'CreateProcessedWebhookEventsTable',
 ];
 
 foreach ($migrations as $migration) {

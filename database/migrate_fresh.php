@@ -7,6 +7,7 @@ $tables = [
     'accommodation_availabilities',
     'order_items',
     'orders',
+    'processed_webhook_events',
     'accommodations',
     'tickets',
     'customers',

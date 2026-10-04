@@ -11,6 +11,7 @@ use Exceptions\Payment\PaymentException;
 use Exceptions\System\UserFacingException;
 use Payments\PaymentGateway;
 use Payments\PaymentIntentRef;
+use Repositories\Contracts\Auth\CustomerRepository;
 use Core\Constants\RedirectKey;
 use Services\Orders\OrderPlacer;
 use Support\Messages;
@@ -18,12 +19,11 @@ use Support\Messages;
 final class CheckoutService
 {
     private const CURRENCY = 'gbp';
-    private const ORDER_TYPE = 'zoo_booking';
-
     public function __construct(
         private readonly PaymentGateway $gateway,
         private readonly OrderPlacer $orders,
         private readonly Logger $logger,
+        private readonly CustomerRepository $customers,
     ) {
     }
 
@@ -31,10 +31,22 @@ final class CheckoutService
     public function begin(string $customerId, Cart $cart): PaymentIntentRef
     {
         $this->assertNotEmpty($cart);
+        $customer = $this->customers->findById($customerId);
+
+        if ($customer === null) {
+            throw new PaymentException(Messages::PAYMENT_UNVERIFIABLE);
+        }
 
         return $this->gateway->createIntent($cart->totalMinorUnits(), self::CURRENCY, [
             'customer_id' => $customerId,
-            'order_type' => self::ORDER_TYPE,
+            'customer_name' => trim(
+                (string) $customer->getAttribute('first_name')
+                . ' '
+                . (string) $customer->getAttribute('last_name')
+            ),
+            'customer_username' => (string) $customer->getAttribute('username'),
+            'customer_email' => (string) $customer->getAttribute('email'),
+            'order_type' => $this->orderType($cart),
         ]);
     }
 
@@ -86,6 +98,21 @@ final class CheckoutService
         if ($cart->isEmpty()) {
             throw new CartException(Messages::CART_EMPTY);
         }
+    }
+
+    private function orderType(Cart $cart): string
+    {
+        $types = [];
+
+        foreach ($cart->items() as $item) {
+            $type = match ($item->type()->cartType()) {
+                'ticket' => 'tickets',
+                default => $item->type()->cartType(),
+            };
+            $types[$type] = true;
+        }
+
+        return implode(',', array_keys($types));
     }
 
     private function refundAndFail(string $intentId, string $reason, bool $appendRefundNotice): never

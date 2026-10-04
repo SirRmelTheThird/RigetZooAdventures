@@ -11,6 +11,7 @@ use Core\View\View;
 
 /**
  * @var string $stripePublishableKey
+ * @var array{items: array<string, array<string, mixed>>, total: int} $cart
  */
 
 $pageTitle = 'Checkout';
